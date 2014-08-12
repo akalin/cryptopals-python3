@@ -43,6 +43,7 @@ def score(s):
 def breakSingleByteXOR(s):
     return max([strxor_c(s, i) for i in range(0, 256)], key=score)
 
-encodedS = '1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736'
-s = binascii.unhexlify(encodedS)
-print(breakSingleByteXOR(s))
+if __name__ == '__main__':
+    encodedS = '1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736'
+    s = binascii.unhexlify(encodedS)
+    print(breakSingleByteXOR(s))
