@@ -16,4 +16,5 @@ def findSingleByteXOR(lines):
     maxI = max(range(len(brokenLines)), key=score)
     return (maxI+1, brokenLines[maxI])
 
-print(findSingleByteXOR(decodeLines('4.txt')))
+if __name__ == '__main__':
+    print(findSingleByteXOR(decodeLines('4.txt')))
