@@ -6,20 +6,19 @@ def encode_profile(profile):
     s = b''
     def sanitize(s):
         return s.replace(b'&', b'').replace(b'=', b'')
-    for k in profile:
-        sanitizedK = sanitize(k.encode('ascii'))
-        sanitizedV = sanitize(profile[k].encode('ascii'))
+    for kv in profile:
+        sanitizedKV = [sanitize(x.encode('ascii')) for x in kv]
         if s != b'':
             s += b'&'
-        s += sanitizedK + b'=' + sanitizedV
+        s += sanitizedKV[0] + b'=' + sanitizedKV[1]
     return s
 
 def profile_for(email):
-    profile = {
-        'email': email,
-        'uid': '10',
-        'role': 'user'
-        }
+    profile = [
+        ['email', email],
+        ['uid', '10'],
+        ['role', 'user']
+        ]
     return encode_profile(profile)
 
 key = challenge11.randbytes(16)
@@ -37,11 +36,10 @@ def decrypt_profile(s):
     cipher = AES.new(key, AES.MODE_ECB)
     decrypted_profile = unpadPKCS7(cipher.decrypt(s), 16)
     pairs = decrypted_profile.split(b'&')
-    d = {}
+    profile = []
     for p in pairs:
-        p = p.split(b'=')
-        d[p[0].decode('ascii')] = p[1].decode('ascii')
-    return d
+        profile += [[x.decode('ascii') for x in p.split(b'=')]]
+    return profile
 
 email = 'foo@bar.com'
 x = encrypt_profile_for(email)
