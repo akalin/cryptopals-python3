@@ -3,10 +3,6 @@ import challenge1
 from Crypto.Cipher import AES
 from Crypto.Util.strxor import strxor
 
-def unpadPKCS7(x, k):
-    ch = x[-1]
-    return x[0:-ch]
-
 class CBC:
     def __init__(self, ECB, IV):
         self._ECB = ECB
@@ -17,7 +13,7 @@ class CBC:
         return [s[i:i+self._blocksize] for i in range(0, len(s), self._blocksize)]
 
     def encrypt(self, plaintext):
-        plainblocks = self._getBlocks(challenge1.padPKCS7(plaintext, self._blocksize))
+        plainblocks = self._getBlocks(plaintext)
         ciphertext = b''
         prev = self._IV
         for i in range(len(plainblocks)):
@@ -36,7 +32,7 @@ class CBC:
             plainblock = strxor(self._ECB.decrypt(cipherblock), prev)
             plaintext += plainblock
             prev = cipherblock
-        return unpadPKCS7(plaintext, self._blocksize)
+        return plaintext
 
 if __name__ == '__main__':
     x = base64.b64decode(open('10.txt', 'r').read())
