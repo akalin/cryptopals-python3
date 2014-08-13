@@ -38,12 +38,13 @@ class CBC:
             prev = cipherblock
         return unpadPKCS7(plaintext, self._blocksize)
 
-x = base64.b64decode(open('10.txt', 'r').read())
+if __name__ == '__main__':
+    x = base64.b64decode(open('10.txt', 'r').read())
 
-key = b'YELLOW SUBMARINE'
-cipher = CBC(AES.new(key, AES.MODE_ECB), bytes([0] * 16))
-y = cipher.decrypt(x)
-print(y)
-z = cipher.encrypt(y)
-if x != z:
-    raise Exception(x + b' != ' + z)
+    key = b'YELLOW SUBMARINE'
+    cipher = CBC(AES.new(key, AES.MODE_ECB), bytes([0] * 16))
+    y = cipher.decrypt(x)
+    print(y)
+    z = cipher.encrypt(y)
+    if x != z:
+        raise Exception(x + b' != ' + z)
