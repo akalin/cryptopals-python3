@@ -33,5 +33,24 @@ def confirmECB(encryption_oracle, blocksize):
     if t[0:blocksize] != t[blocksize:2*blocksize]:
         raise Exception('Not using ECB')
 
+def findNextByte(encryption_oracle, blocksize, knownBytes):
+    s = bytes([0] * (blocksize - (len(knownBytes) % blocksize) - 1))
+    d = {}
+    for i in range(256):
+        t = encryption_oracle(s + knownBytes + bytes([i]))
+        d[t[0:len(s) + len(knownBytes) + 1]] = i
+    t = encryption_oracle(s)
+    u = t[0:len(s) + len(knownBytes) + 1]
+    if u in d:
+        return d[u]
+    return None
+
 blocksize = findBlockSize(encryption_oracle)
 confirmECB(encryption_oracle, blocksize)
+s = b''
+while True:
+    b = findNextByte(encryption_oracle, blocksize, s)
+    if b is None:
+        break
+    s += bytes([b])
+print(s)
