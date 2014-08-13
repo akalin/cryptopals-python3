@@ -26,3 +26,12 @@ def findBlockSize(encryption_oracle):
         if len(t) != l:
             return len(t) - l
         i += 1
+
+def confirmECB(encryption_oracle, blocksize):
+    s = challenge11.randbytes(blocksize) * 2
+    t = encryption_oracle(s)
+    if t[0:blocksize] != t[blocksize:2*blocksize]:
+        raise Exception('Not using ECB')
+
+blocksize = findBlockSize(encryption_oracle)
+confirmECB(encryption_oracle, blocksize)
