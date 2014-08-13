@@ -26,4 +26,5 @@ def detectMethod(encryption_oracle):
         return 'ECB'
     return 'CBC'
 
-print(detectMethod(encryption_oracle))
+if __name__ == '__main__':
+    print(detectMethod(encryption_oracle))
