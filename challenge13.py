@@ -41,8 +41,10 @@ def decrypt_profile(s):
         profile += [[x.decode('ascii') for x in p.split(b'=')]]
     return profile
 
-email = 'foo@bar.com'
-x = encrypt_profile_for(email)
-# TODO(akalin): Munge x into a profile with an admin role.
+email1 = 'foo@bar.coadmin' + ('\x0b' * 11)
+x1 = encrypt_profile_for(email1)
+email2 = 'foo@bar.commm'
+x2 = encrypt_profile_for(email2)
+x = x2[0:32] + x1[16:32]
 y = decrypt_profile(x)
-print(email, x, y)
+print(y)
