@@ -10,7 +10,7 @@ def decodeLines(filename):
         yield s
 
 def findSingleByteXOR(lines):
-    brokenLines = [challenge3.breakSingleByteXOR(l) for l in lines]
+    brokenLines = [challenge3.breakSingleByteXOR(l)[1] for l in lines]
     def score(i):
         return challenge3.score(brokenLines[i])
     maxI = max(range(len(brokenLines)), key=score)
