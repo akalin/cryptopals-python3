@@ -21,6 +21,8 @@ def decryptParamsAndCheckAdmin(encryptedParams):
     params = challenge15.unpadPKCS7(paddedParams)
     return params.find(b';admin=true;') != -1
 
-x = encryptParams('userdata')
-# TODO(akalin): Munge x.
-print(decryptParamsAndCheckAdmin(x))
+x = list(encryptParams('XXXXXXXXXXXXXXXX:admin<true:XXXX'))
+x[32] ^= 1
+x[38] ^= 1
+x[43] ^= 1
+print(decryptParamsAndCheckAdmin(bytes(x)))
