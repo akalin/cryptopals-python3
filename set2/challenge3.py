@@ -1,5 +1,6 @@
 from Crypto.Cipher import AES
 from Crypto.Random import random
+import challenge1
 import challenge2
 
 def randbytes(k):
@@ -15,4 +16,14 @@ def encryption_oracle(s):
         IV = randbytes(16)
         cipher = challenge2.CBC(cipher, IV)
     s = randbytes(random.randint(5, 10)) + s + randbytes(random.randint(5, 10))
+    s = challenge1.padPKCS7(s, 16)
     return cipher.encrypt(s)
+
+def detectMethod(encryption_oracle):
+    s = bytes([0] * 47)
+    t = encryption_oracle(s)
+    if t[16:32] == t[32:48]:
+        return 'ECB'
+    return 'CBC'
+
+print(detectMethod(encryption_oracle))
