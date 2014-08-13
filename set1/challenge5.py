@@ -1,7 +1,7 @@
 import binascii
 
 def encodeRepeatingKeyXor(s, key):
-    return s.encode('ascii')
+    return bytes([ord(s[i]) ^ ord(key[i % len(key)]) for i in range(len(s))])
 
 x = '''Burning 'em, if you ain't quick and nimble
 I go crazy when I hear a cymbal'''
