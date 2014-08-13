@@ -45,12 +45,13 @@ def findNextByte(encryption_oracle, blocksize, knownBytes):
         return d[u]
     return None
 
-blocksize = findBlockSize(encryption_oracle)
-confirmECB(encryption_oracle, blocksize)
-s = b''
-while True:
-    b = findNextByte(encryption_oracle, blocksize, s)
-    if b is None:
-        break
-    s += bytes([b])
-print(s)
+if __name__ == '__main__':
+    blocksize = findBlockSize(encryption_oracle)
+    confirmECB(encryption_oracle, blocksize)
+    s = b''
+    while True:
+        b = findNextByte(encryption_oracle, blocksize, s)
+        if b is None:
+            break
+        s += bytes([b])
+    print(s)
