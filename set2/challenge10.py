@@ -1,5 +1,4 @@
 import base64
-import challenge1
 from Crypto.Cipher import AES
 from Crypto.Util.strxor import strxor
 
