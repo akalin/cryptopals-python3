@@ -16,3 +16,13 @@ def encryption_oracle(s):
     cipher = AES.new(key, AES.MODE_ECB)
     s = challenge9.padPKCS7(s + base64.b64decode(encodedSuffix), 16)
     return cipher.encrypt(s)
+
+def findBlockSize(encryption_oracle):
+    l = len(encryption_oracle(b''))
+    i = 1
+    while True:
+        s = bytes([0] * i)
+        t = encryption_oracle(s)
+        if len(t) != l:
+            return len(t) - l
+        i += 1
