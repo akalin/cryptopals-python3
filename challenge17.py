@@ -40,7 +40,7 @@ def decipher_last_block_previous_byte(iv, s, padding_oracle, knownI, knownP):
     k = len(knownI) + 1
     prefix = challenge11.randbytes(16 - k)
     for i in range(256):
-        c1 = s[-32:-16]
+        c1 = s[-32:-16] if len(s) > 16 else iv
         c1p = prefix + bytes([i]) + bytes([ch ^ k for ch in knownI])
         sp = s[:-32] + c1p + s[-16:]
         if padding_oracle(iv, sp):
@@ -58,10 +58,9 @@ def decipher_last_block(iv, s, padding_oracle):
 
 def decipher(iv, s, padding_oracle):
     knownP = b''
-    for i in range(len(s) // 16 - 1):
+    for i in range(len(s) // 16):
         st = s if i == 0 else s[:-i * 16]
         knownP = decipher_last_block(iv, st, padding_oracle) + knownP
-    # TODO(akalin): Handle first block.
     return challenge15.unpadPKCS7(knownP)
 
 (iv, s) = ciphertext_oracle()
