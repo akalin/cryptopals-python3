@@ -36,5 +36,15 @@ def padding_oracle(iv, s):
         return False
     return True
 
+def decipher_last_byte(iv, s, padding_oracle):
+    prefix = challenge11.randbytes(15)
+    for i in range(256):
+        c1 = s[-32:-16]
+        c1p = prefix + bytes([i])
+        sp = s[:-32] + c1p + s[-16:]
+        if padding_oracle(iv, sp):
+            return c1[-1] ^ (i ^ 1)
+    raise Exception('unexpected')
+
 (iv, s) = ciphertext_oracle()
-print(padding_oracle(iv, s))
+print(decipher_last_byte(iv, s, padding_oracle))
