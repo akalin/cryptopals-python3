@@ -36,15 +36,25 @@ def padding_oracle(iv, s):
         return False
     return True
 
-def decipher_last_byte(iv, s, padding_oracle):
-    prefix = challenge11.randbytes(15)
+def decipher_last_block_previous_byte(iv, s, padding_oracle, knownI, knownP):
+    k = len(knownI) + 1
+    prefix = challenge11.randbytes(16 - k)
     for i in range(256):
         c1 = s[-32:-16]
-        c1p = prefix + bytes([i])
+        c1p = prefix + bytes([i]) + bytes([ch ^ k for ch in knownI])
         sp = s[:-32] + c1p + s[-16:]
         if padding_oracle(iv, sp):
-            return c1[-1] ^ (i ^ 1)
+            iPrev = i ^ k
+            pPrev = c1[-k] ^ iPrev
+            return (bytes([iPrev] + list(knownI)), bytes([pPrev] + list(knownP)))
     raise Exception('unexpected')
 
+def decipher_last_block(iv, s, padding_oracle):
+    knownI = b''
+    knownP = b''
+    for i in range(16):
+        (knownI, knownP) = decipher_last_block_previous_byte(iv, s, padding_oracle, knownI, knownP)
+    return knownP
+
 (iv, s) = ciphertext_oracle()
-print(decipher_last_byte(iv, s, padding_oracle))
+print(decipher_last_block(iv, s, padding_oracle))
