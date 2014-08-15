@@ -25,3 +25,12 @@ class MT19937:
             self._MT[i] = self._MT[(i + 397) % 624] ^ (y >> 1)
             if y % 2 != 0:
                 self._MT[i] ^= 0x9908b0df
+
+if __name__ == '__main__':
+    expectedNumbers = [int(x) for x in open('21.txt', 'r').read().split('\n')[:-1]]
+    seed = 5489
+    x = MT19937(seed)
+    for i in range(1000):
+        a = x.uint32()
+        if a != expectedNumbers[i]:
+            raise Exception(str(i) + ' ' + a + ' != ' + expectedNumbers[i])
