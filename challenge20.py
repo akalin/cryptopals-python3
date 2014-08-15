@@ -37,4 +37,7 @@ key = challenge19.extendKey(key, encryptedStrings[26], b'hole scenery')
 kl = len(key)
 for i in range(len(encryptedStrings)):
     s = encryptedStrings[i]
-    print(i, strxor(s[:kl], key[:len(s)]) + s[kl:])
+    decrypted = strxor(s[:kl], key[:len(s)]) + s[kl:]
+    if decrypted != strings[i]:
+        raise Exception('Invalid decryption')
+    print(i, decrypted)
