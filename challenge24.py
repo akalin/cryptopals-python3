@@ -3,6 +3,7 @@ from Crypto.Random import random
 import challenge11
 import challenge21
 import struct
+import time
 
 class MT19937Cipher:
     def __init__(self, key):
@@ -48,3 +49,18 @@ def recover_key(encryption_oracle):
     raise Exception('unexpected')
 
 print(key, recover_key(encryption_oracle))
+
+def token_oracle():
+    seed = int(time.time())
+    cipher = MT19937Cipher(seed)
+    plaintext = b'0' * random.randint(4, 20)
+    return cipher.encrypt(plaintext)
+
+def is_token_for_current_time(token):
+    seed = int(time.time())
+    cipher = MT19937Cipher(seed)
+    plaintext = b'0' * len(token)
+    return cipher.encrypt(plaintext) == token
+
+x = token_oracle()
+print(x, is_token_for_current_time(x))
