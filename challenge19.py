@@ -81,5 +81,7 @@ k = extendKey(k, encryptedStrings[4], b'ead')
 k = extendKey(k, encryptedStrings[37], b'n,')
 kl = len(k)
 decrypted = [strxor(x[:kl], k[:len(x)]) + x[kl:] for x in encryptedStrings]
-for s in decrypted:
-    print(s)
+for i in range(len(decrypted)):
+    if decrypted[i] != base64.b64decode(strings[i]):
+        raise Exception('Invalid decryption')
+    print(decrypted[i])
