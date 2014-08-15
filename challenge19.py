@@ -69,6 +69,16 @@ def extendKey(k, ciphertext, guess):
 ks = [getPrintableKeyChar(encryptedStrings, i) for i in range(10)]
 k = bytes(list(itertools.islice(itertools.product(*ks), 1))[0])
 k = extendKey(k, encryptedStrings[1], b'h ')
+k = extendKey(k, encryptedStrings[3], b'entury ')
+k = extendKey(k, encryptedStrings[5], b'ss ')
+k = extendKey(k, encryptedStrings[3], b'se')
+k = extendKey(k, encryptedStrings[5], b'rds')
+k = extendKey(k, encryptedStrings[0], b' ')
+k = extendKey(k, encryptedStrings[29], b'ght')
+k = extendKey(k, encryptedStrings[4], b' ')
+k = extendKey(k, encryptedStrings[27], b'd')
+k = extendKey(k, encryptedStrings[4], b'ead')
+k = extendKey(k, encryptedStrings[37], b'n,')
 kl = len(k)
 decrypted = [strxor(x[:kl], k[:len(x)]) + x[kl:] for x in encryptedStrings]
 for s in decrypted:
