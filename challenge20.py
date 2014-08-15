@@ -15,6 +15,7 @@ def breakSameKey(strings):
     return bytes(key)
 
 key = breakSameKey(encryptedStrings)
+key = bytes([encryptedStrings[0][0] ^ ord('I')]) + key[1:]
 kl = len(key)
 for s in encryptedStrings:
     print(strxor(s[:kl], key[:len(s)]) + s[kl:])
