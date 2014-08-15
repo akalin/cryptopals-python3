@@ -25,3 +25,10 @@ def undoLeftShiftXorAnd(y, s, k):
     for i in range(32):
        z = setLSB(z, i, getLSB(y, i) ^ (getLSB(z, i - s) & getLSB(k, i)))
     return z
+
+def untemper(y):
+    y = undoRightShiftXor(y, 18)
+    y = undoLeftShiftXorAnd(y, 15, 0xefc60000)
+    y = undoLeftShiftXorAnd(y, 7, 0x9d2c5680)
+    y = undoRightShiftXor(y, 11)
+    return y
