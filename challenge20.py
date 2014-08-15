@@ -33,6 +33,7 @@ key = challenge19.extendKey(key, encryptedStrings[12], b'nk')
 key = challenge19.extendKey(key, encryptedStrings[26], b've ')
 key = challenge19.extendKey(key, encryptedStrings[41], b'll')
 key = challenge19.extendKey(key, encryptedStrings[21], b'ace')
+key = challenge19.extendKey(key, encryptedStrings[26], b'hole scenery')
 kl = len(key)
 for i in range(len(encryptedStrings)):
     s = encryptedStrings[i]
