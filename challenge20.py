@@ -30,6 +30,10 @@ key = challenge19.extendKey(key, encryptedStrings[17], b'able')
 key = challenge19.extendKey(key, encryptedStrings[11], b'st')
 key = challenge19.extendKey(key, encryptedStrings[2], b'k')
 key = challenge19.extendKey(key, encryptedStrings[12], b'nk')
+key = challenge19.extendKey(key, encryptedStrings[26], b've ')
+key = challenge19.extendKey(key, encryptedStrings[41], b'll')
+key = challenge19.extendKey(key, encryptedStrings[21], b'ace')
 kl = len(key)
-for s in encryptedStrings:
-    print(strxor(s[:kl], key[:len(s)]) + s[kl:])
+for i in range(len(encryptedStrings)):
+    s = encryptedStrings[i]
+    print(i, strxor(s[:kl], key[:len(s)]) + s[kl:])
