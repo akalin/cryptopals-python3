@@ -1,7 +1,9 @@
 from Crypto.Cipher import AES
+from Crypto.Util.strxor import strxor
 import base64
 import binascii
 import challenge18
+import itertools
 
 strings = [
     b'SSBoYXZlIG1ldCB0aGVtIGF0IGNsb3NlIG9mIGRheQ==',
@@ -55,5 +57,19 @@ def encryptString(s):
 
 encryptedStrings = [encryptString(base64.b64decode(s)) for s in strings]
 
-for x in encryptedStrings:
-    print(binascii.hexlify(x))
+def getPrintableKeyChar(encryptedStrings, i):
+    for j in range(256):
+        decrypted = [x[i] ^ j for x in encryptedStrings]
+        if all([chr(x) in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ,' for x in decrypted]):
+            yield j
+
+def extendKey(k, ciphertext, guess):
+    return k + bytes([guess[i] ^ ciphertext[len(k) + i] for i in range(len(guess))])
+
+ks = [getPrintableKeyChar(encryptedStrings, i) for i in range(10)]
+k = bytes(list(itertools.islice(itertools.product(*ks), 1))[0])
+k = extendKey(k, encryptedStrings[1], b'h ')
+kl = len(k)
+decrypted = [strxor(x[:kl], k[:len(x)]) + x[kl:] for x in encryptedStrings]
+for s in decrypted:
+    print(s)
