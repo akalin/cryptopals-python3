@@ -1,4 +1,6 @@
 from Crypto.Util.strxor import strxor
+from Crypto.Random import random
+import challenge11
 import challenge21
 import struct
 
@@ -26,3 +28,23 @@ class MT19937Cipher:
 
     def decrypt(self, ciphertext):
         return self.encrypt(ciphertext)
+
+key = random.getrandbits(16)
+
+def encryption_oracle(plaintext):
+    prefix = challenge11.randbytes(random.randint(4, 20))
+    cipher = MT19937Cipher(key)
+    return cipher.encrypt(prefix + plaintext)
+
+def recover_key(encryption_oracle):
+    plaintext = b'0' * 14
+    ciphertext = encryption_oracle(plaintext)
+    prefix_len = len(ciphertext) - len(plaintext)
+    for i in range(2**16-1):
+        cipher = MT19937Cipher(i)
+        s = cipher.encrypt(b'0' * len(ciphertext))
+        if ciphertext[prefix_len:] == s[prefix_len:]:
+            return i
+    raise Exception('unexpected')
+
+print(key, recover_key(encryption_oracle))
