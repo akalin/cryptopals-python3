@@ -20,8 +20,11 @@ message = b'comment1=cooking%20MCs;userdata=foo;comment2=%20like%20a%20pound%20o
 messageDigest = challenge28.authSHA1(key, message)
 
 def forgeHash(keylen, message, digest, suffix):
-    # TODO(akalin): Implement.
-    return (message + suffix, b'')
+    paddedForgedMessageWithKey = padSHA1(key + message) + suffix
+    forgedMessage = paddedForgedMessageWithKey[keylen:]
+    h = struct.unpack('>5I', digest)
+    forgedDigest = challenge28.SHA1(suffix, h[0], h[1], h[2], h[3], h[4], len(paddedForgedMessageWithKey) * 8).digest()
+    return (forgedMessage, forgedDigest)
 
 def forgeValidatingHash(maxkeylen, message, digest, suffix):
     for i in range(maxkeylen):
