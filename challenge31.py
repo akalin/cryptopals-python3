@@ -39,5 +39,9 @@ def guessNextByte(file, knownBytes):
 if __name__ == '__main__':
     file = sys.argv[1]
     knownBytes = b''
-    knownBytes = guessNextByte(file, knownBytes)
+    for i in range(20):
+        knownBytes = guessNextByte(file, knownBytes)
+        print(binascii.hexlify(knownBytes))
     print(binascii.hexlify(knownBytes))
+    if not isValidSignature(file, binascii.hexlify(knownBytes).decode('ascii'))[0]:
+        raise Exception('unexpected')
