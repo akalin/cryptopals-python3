@@ -17,9 +17,9 @@ def isValidSignature(file, signature):
             raise
         return (False, end - start)
 
-def guessNextByte(file, knownBytes):
+def guessNextByte(file, knownBytes, delay):
     suffixlen = 20 - len(knownBytes)
-    expectedDuration = 0.05 * len(knownBytes) + 0.01
+    expectedDuration = delay * len(knownBytes) + 0.01
     start = time.perf_counter()
 
     def print_info(i):
@@ -30,7 +30,7 @@ def guessNextByte(file, knownBytes):
         suffix = bytes([i]) + (b'\x00' * (suffixlen - 1))
         signature = knownBytes + suffix
         _, duration = isValidSignature(file, binascii.hexlify(signature).decode('ascii'))
-        if duration > expectedDuration + 0.04:
+        if duration > expectedDuration + 0.8 * delay:
             print_info(i)
             return knownBytes + bytes([i])
 
@@ -39,8 +39,9 @@ def guessNextByte(file, knownBytes):
 if __name__ == '__main__':
     file = sys.argv[1]
     knownBytes = b''
+    DELAY = 0.05
     for i in range(20):
-        knownBytes = guessNextByte(file, knownBytes)
+        knownBytes = guessNextByte(file, knownBytes, DELAY)
         print(binascii.hexlify(knownBytes))
     print(binascii.hexlify(knownBytes))
     if not isValidSignature(file, binascii.hexlify(knownBytes).decode('ascii'))[0]:
