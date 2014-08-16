@@ -17,5 +17,11 @@ def ciphertext_oracle():
     cipher = challenge18.CTR(AES.new(key, AES.MODE_ECB), nonce)
     return cipher.encrypt(plaintext)
 
-print(ciphertext_oracle())
-# TODO(akalin): Implement edit() and break the encryption with it.
+def edit(ciphertext, offset, newtext):
+    cipher = challenge18.CTR(AES.new(key, AES.MODE_ECB), nonce)
+    cipher.encrypt(b'\x00' * offset)
+    return ciphertext[0:offset] + cipher.encrypt(newtext)
+
+ciphertext = ciphertext_oracle()
+plaintext = edit(ciphertext, 0, ciphertext)
+print(plaintext)
