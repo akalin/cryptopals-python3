@@ -9,6 +9,7 @@ import time
 import urllib.parse
 
 PORT = 9000
+DELAY = 0.05
 
 blocksize = 64
 key = challenge11.randbytes(100)
@@ -33,7 +34,7 @@ def insecure_compare(x, y):
     for i in range(len(x)):
         if x[i] != y[i]:
             return False
-        time.sleep(0.05)
+        time.sleep(DELAY)
     return True
 
 last_file = b''
@@ -58,7 +59,13 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         else:
             self.send_error(500)
 
-socketserver.TCPServer.allow_reuse_address = True
-httpd = socketserver.TCPServer(("", PORT), RequestHandler)
-print("serving at port", PORT)
-httpd.serve_forever()
+def serve_forever(delay):
+    global DELAY
+    DELAY = delay
+    socketserver.TCPServer.allow_reuse_address = True
+    httpd = socketserver.TCPServer(("", PORT), RequestHandler)
+    print("serving at port {0} with delay {1}".format(PORT, DELAY))
+    httpd.serve_forever()
+
+if __name__ == '__main__':
+    serve_forever(DELAY)
