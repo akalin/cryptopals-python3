@@ -58,12 +58,15 @@ class md4(object):
     _state = None #list of [a,b,c,d] 32 bit ints used as internal register
     _buf = None #data processed in 64 byte blocks, this holds leftover from last update
 
-    def __init__(self, content=None):
+    _h0 = 0x67452301
+    _h1 = 0xefcdab89
+    _h2 = 0x98badcfe
+    _h3 = 0x10325476
+
+    def __init__(self, h0 = _h0, h1 = _h1, h2 = _h2, h3 = _h3):
         self._count = 0
-        self._state = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476]
+        self._state = [h0, h1, h2, h3]
         self._buf = b''
-        if content:
-            self.update(content)
 
     #round 1 table - [abcd k s]
     _round1 = [
@@ -187,7 +190,7 @@ class md4(object):
         other._buf = self._buf
         return other
 
-    def digest(self):
+    def digest(self, msglen=None):
         #NOTE: backing up state so we can restore it after _process is called,
         #in case object is updated again (this is only attr altered by this method)
         orig = list(self._state)
@@ -196,7 +199,8 @@ class md4(object):
         # then 0x00 padding until congruent w/ 56 mod 64 bytes
         # then last 8 bytes = msg length in bits
         buf = self._buf
-        msglen = self._count*512 + len(buf)*8
+        if msglen is None:
+            msglen = self._count*512 + len(buf)*8
         block = buf + b'\x80' + b'\x00' * ((119-len(buf)) % 64) + \
             struct.pack("<2I", msglen & MASK_32, (msglen>>32) & MASK_32)
         if len(block) == 128:
