@@ -29,6 +29,15 @@ def writenum(f, num):
 def writebytes(f, bytes):
     writeline(f, base64.b64encode(bytes))
 
+def derivekey(s):
+    sha1 = hashlib.sha1()
+    sha1.update(str(s).encode('ascii'))
+    return sha1.digest()[:16]
+
+def decrypt(key, iv, encryptedMessage):
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    return challenge15.unpadPKCS7(cipher.decrypt(encryptedMessage)).decode('ascii')
+
 class AttackerTCPHandler(socketserver.StreamRequestHandler):
     def readline(self):
         return self.rfile.readline().strip()
@@ -105,7 +114,10 @@ class AttackerTCPHandler(socketserver.StreamRequestHandler):
             print('A->C: writing iv...')
             self.writebytes(iv2)
 
-            # TODO(akalin): Decrypt encryptedMessage.
+            key = derivekey(0)
+            message = decrypt(key, iv, encryptedMessage)
+
+            print('A: message: ' + message)
 
         finally:
             sock.close()
