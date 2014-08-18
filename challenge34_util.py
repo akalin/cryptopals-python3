@@ -3,12 +3,20 @@ import base64
 import challenge9
 import challenge15
 import hashlib
+import socket
+import socketserver
 
 class Util:
-    def __init__(self, sock):
-        f = sock.makefile(mode='rwb', buffering=0)
-        self._rfile = f
-        self._wfile = f
+    def __init__(self, o):
+        if isinstance(o, socket.socket):
+            f = o.makefile(mode='rwb', buffering=0)
+            self._rfile = f
+            self._wfile = f
+        elif isinstance(o, socketserver.StreamRequestHandler):
+            self._rfile = o.rfile
+            self._wfile = o.wfile
+        else:
+            raise Exception('unexpected')
 
     def readline(self):
         return self._rfile.readline().strip()
