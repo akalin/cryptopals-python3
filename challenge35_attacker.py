@@ -30,6 +30,8 @@ class AttackerTCPHandler(socketserver.StreamRequestHandler):
 
             if targetg > 0:
                 fakeg = 1
+            elif targetg < 0:
+                fakeg = p - 1
             else:
                 fakeg = p
 
@@ -86,6 +88,11 @@ class AttackerTCPHandler(socketserver.StreamRequestHandler):
 
             if targetg > 0:
                 s = 1
+            elif targetg < 0:
+                if A == p - 1 and B == p - 1:
+                    s = p - 1
+                else:
+                    s = 1
             else:
                 s = 0
             key = serverutil.derivekey(s)
