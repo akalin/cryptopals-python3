@@ -1,6 +1,5 @@
 from Crypto.Random import random
-
-primes = [5, 7, 11, 13, 17, 19]
+import binascii
 
 def invmod(a, n):
     t = 0
@@ -17,16 +16,38 @@ def invmod(a, n):
         t += n
     return t
 
-def genKey():
+smallPrimes = [2, 3, 5, 7, 11, 13, 17, 19]
+
+def hasSmallPrimeFactor(p):
+    for x in smallPrimes:
+        if p % x == 0:
+            return True
+    return False
+
+def isProbablePrime(p, n):
+    for i in range(n):
+        a = random.randint(1, p)
+        if pow(a, p - 1, p) != 1:
+            return False
+    return True
+
+def getProbablePrime(bitcount):
+    while True:
+        p = random.randint(2**(bitcount - 1), 2**bitcount - 1)
+        if not hasSmallPrimeFactor(p) and isProbablePrime(p, 5):
+            return p
+
+def genKey(keysize):
     e = 3
+    bitcount = (keysize + 1) // 2 + 1
 
     p = 7
     while (p - 1) % e == 0:
-        p = random.choice(primes)
+        p = getProbablePrime(bitcount)
 
     q = p
     while q == p or (q - 1) % e == 0:
-        q = random.choice(primes)
+        q = getProbablePrime(bitcount)
 
     n = p * q
     et = (p - 1) * (q - 1)
@@ -47,10 +68,29 @@ def decryptnum(priv, c):
         raise ValueError(str(c) + ' out of range')
     return pow(c, d, n)
 
-if __name__ == '__main__':
-    pub, priv = genKey()
-    m = 42
+# Drops leading zero bytes.
+def bytestonum(s):
+    return int.from_bytes(s, byteorder='big')
+
+def numtobytes(k):
+    return k.to_bytes((k.bit_length() + 7) // 8, byteorder='big')
+
+def encryptbytes(pub, mbytes):
+    m = bytestonum(mbytes)
     c = encryptnum(pub, m)
-    m2 = decryptnum(priv, c)
+    cbytes = numtobytes(c)
+    return cbytes
+
+def decryptbytes(priv, cbytes):
+    c = bytestonum(cbytes)
+    m = decryptnum(priv, c)
+    mstr = numtobytes(m)
+    return mstr
+
+if __name__ == '__main__':
+    pub, priv = genKey(128)
+    m = b'test'
+    c = encryptbytes(pub, m)
+    m2 = decryptbytes(priv, c)
     if m != m2:
         raise Exception(str(m) + ' != ' + str(m2))
