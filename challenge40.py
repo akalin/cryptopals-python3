@@ -2,11 +2,12 @@ import challenge39
 import binascii
 import math
 
-(pub0, priv0) = challenge39.genKey(128)
-(pub1, priv1) = challenge39.genKey(128)
-(pub2, priv2) = challenge39.genKey(128)
+(pub0, priv0) = challenge39.genKey(256)
+(pub1, priv1) = challenge39.genKey(256)
+(pub2, priv2) = challenge39.genKey(256)
 
-plainnum = 42
+plaintext = b'This is a plaintext string'
+plainnum = challenge39.bytestonum(plaintext)
 
 c0 = challenge39.encryptnum(pub0, plainnum)
 c1 = challenge39.encryptnum(pub1, plainnum)
@@ -40,6 +41,7 @@ def floorRoot(n, s):
     return 1
 
 m = floorRoot(r, 3)
+mstr = challenge39.numtobytes(m)
 
-if m != plainnum:
-    raise Exception(str(m) + ' != ' + str(plainnum))
+if mstr != plaintext:
+    raise Exception(mstr + b' != ' + plaintext)
