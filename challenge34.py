@@ -1,12 +1,8 @@
-from Crypto.Cipher import AES
 from Crypto.Random import random
-import base64
-import challenge9
 import challenge11
-import challenge15
-import hashlib
 import socket
 import sys
+import challenge34_util
 
 host = sys.argv[1]
 port = int(sys.argv[2])
@@ -17,69 +13,38 @@ g = 2
 a = random.randint(0, p)
 A = pow(g, a, p)
 
-def readline(f):
-    return f.readline().strip()
-
-def readnum(f):
-    return int(readline(f))
-
-def readbytes(f):
-    return base64.b64decode(readline(f))
-
-def writeline(f, line):
-    f.write(line + b'\n')
-
-def writenum(f, num):
-    writeline(f, str(num).encode('ascii'))
-
-def writebytes(f, bytes):
-    writeline(f, base64.b64encode(bytes))
-
-def derivekey(s):
-    sha1 = hashlib.sha1()
-    sha1.update(str(s).encode('ascii'))
-    return sha1.digest()[:16]
-
-def encrypt(key, iv, message):
-    cipher = AES.new(key, AES.MODE_CBC, iv)
-    return cipher.encrypt(challenge9.padPKCS7(message.encode('ascii'), 16))
-
-def decrypt(key, iv, encryptedMessage):
-    cipher = AES.new(key, AES.MODE_CBC, iv)
-    return challenge15.unpadPKCS7(cipher.decrypt(encryptedMessage)).decode('ascii')
-
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
     sock.connect((host, port))
-    f = sock.makefile(mode='rwb', buffering=0)
+    util = challenge34_util.Util(sock)
 
     print('C: writing p...')
-    writenum(f, p)
+    util.writenum(p)
 
     print('C: writing g...')
-    writenum(f, g)
+    util.writenum(g)
 
     print('C: writing A...')
-    writenum(f, A)
+    util.writenum(A)
 
     print('C: reading B...')
-    B = readnum(f)
+    B = util.readnum()
 
     s = pow(B, a, p)
-    key = derivekey(s)
+    key = util.derivekey(s)
 
     iv = challenge11.randbytes(16)
-    encryptedMessage = encrypt(key, iv, message)
+    encryptedMessage = util.encrypt(key, iv, message)
 
     print('C: writing encrypted message...')
-    writebytes(f, encryptedMessage)
+    util.writebytes(encryptedMessage)
 
     print('C: writing iv...')
-    writebytes(f, iv)
+    util.writebytes(iv)
 
     print('C: reading encrypted message...')
-    encryptedMessage2 = readbytes(f)
-    message2 = decrypt(key, iv, encryptedMessage2)
+    encryptedMessage2 = util.readbytes()
+    message2 = util.decrypt(key, iv, encryptedMessage2)
     if message2 != message:
         raise Exception(message2 + ' != ' + message)
 finally:
