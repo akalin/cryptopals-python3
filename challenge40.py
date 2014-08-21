@@ -40,8 +40,9 @@ def floorRoot(n, s):
         x = y
     return 1
 
-m = floorRoot(r, 3)
-mstr = challenge39.numtobytes(m)
+if __name__ == '__main__':
+    m = floorRoot(r, 3)
+    mstr = challenge39.numtobytes(m)
 
-if mstr != plaintext:
-    raise Exception(mstr + b' != ' + plaintext)
+    if mstr != plaintext:
+        raise Exception(mstr + b' != ' + plaintext)
