@@ -37,3 +37,14 @@ if __name__ == '__main__':
     print(message2, signature2, relaxedVerifySignature(message2, signature2, pub))
     print(relaxedVerifySignature(message1, signature2, pub))
     print(relaxedVerifySignature(message2, signature1, pub))
+
+    pub, priv = challenge43.genKeys(p, q, p+1)
+    (_, _, _, y) = pub
+    z = 2
+    invZ = challenge39.invmod(2, q)
+    r = ((y**z) % p) % q
+    s = (r * invZ) % q
+    signature = (r, s)
+    print(signature)
+    print(message1, challenge43.verifySignature(message1, signature, pub))
+    print(message2, challenge43.verifySignature(message2, signature, pub))
