@@ -1,5 +1,6 @@
 from Crypto.Random import random
 import challenge39
+import re
 
 pub, priv = challenge39.genKey(256)
 
@@ -44,6 +45,21 @@ def computeNextS(e, n, M, s, B, c0):
                     return (s, c)
             r += 1
 
+def getNextInterval(n, M, s, B):
+    if len(M) > 1:
+        raise Exception('unexpected')
+    a, b = M[0]
+    minR = (a * s - 3 * B + 1 + n - 1) // n
+    maxR = (b * s - 2 * B) // n
+    if maxR > minR:
+        raise Exception('unexpected')
+    r = minR
+    ai = max(a, (2*B + r*n + s - 1) // s)
+    bi = min(b, (3*B - 1 + r*n) // s)
+    if ai > bi:
+        raise Exception('unexpected')
+    return [(ai, bi)]
+
 def deducePlaintext(ciphertext, pub, parityOracle):
     e, n = pub
     k = (n.bit_length() + 7) // 8
@@ -51,11 +67,13 @@ def deducePlaintext(ciphertext, pub, parityOracle):
     c0 = challenge39.bytestonum(ciphertext)
     M = [(2*B, 3*B - 1)]
     (s, c) = computeFirstS(e, n, B, c0, parityOracle)
-    print(s, c)
-    (s, c) = computeNextS(e, n, M, s, B, c0)
-    print(s, c)
-    # TODO(akalin): Deduce plaintext using parityOracle.
-    return b''
+    M = getNextInterval(n, M, s, B)
+    while True:
+        if len(M) == 1 and M[0][0] == M[0][1]:
+            m = M[0][0]
+            return b'\x00' + challenge39.numtobytes(m)
+        (s, c) = computeNextS(e, n, M, s, B, c0)
+        M = getNextInterval(n, M, s, B)
 
 if __name__ == '__main__':
     _, n = pub
