@@ -29,6 +29,21 @@ def computeFirstS(e, n, B, c0, parityOracle):
             return (s, c)
         s += 1
 
+def computeNextS(e, n, M, s, B, c0):
+    if len(M) > 1:
+        raise Exception('unexpected')
+    else:
+        a, b = M[0]
+        r = (2 * (b * s - 2 * B) + n - 1) // n
+        while True:
+            sLow = (2*B + r*n + b - 1) // b
+            sHigh = (3*B + r*n + a - 1) // a
+            for s in range(sLow, sHigh):
+                c = (c0 * pow(s, e, n)) % n
+                if parityOracle(c):
+                    return (s, c)
+            r += 1
+
 def deducePlaintext(ciphertext, pub, parityOracle):
     e, n = pub
     k = (n.bit_length() + 7) // 8
@@ -36,6 +51,8 @@ def deducePlaintext(ciphertext, pub, parityOracle):
     c0 = challenge39.bytestonum(ciphertext)
     M = [(2*B, 3*B - 1)]
     (s, c) = computeFirstS(e, n, B, c0, parityOracle)
+    print(s, c)
+    (s, c) = computeNextS(e, n, M, s, B, c0)
     print(s, c)
     # TODO(akalin): Deduce plaintext using parityOracle.
     return b''
