@@ -8,12 +8,26 @@ def parityOracle(c):
     return p % 2
 
 def deducePlaintext(ciphertext, pub, parityOracle):
-    (_, n) = pub
+    (e, n) = pub
     low = 0
     high = 1
     denom = 1
-    # TODO(akalin): Use the parity oracle to deduce the plaintext.
-    return b''
+    c = challenge39.bytestonum(ciphertext)
+    k = pow(2, e, n)
+    for _ in range(n.bit_length()):
+        c  = (c * k) % n
+        p = parityOracle(c)
+        d = high - low
+        low *= 2
+        high *= 2
+        denom *= 2
+        if p == 0:
+            high -= d
+        else:
+            low += d
+        hightext = challenge39.numtobytes(n * high // denom)
+        print(hightext)
+    return hightext
 
 if __name__ == '__main__':
     encodedPlaintext = b'VGhhdCdzIHdoeSBJIGZvdW5kIHlvdSBkb24ndCBwbGF5IGFyb3VuZCB3aXRoIHRoZSBGdW5reSBDb2xkIE1lZGluYQ=='
