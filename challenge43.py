@@ -1,5 +1,6 @@
 from Crypto.Random import random
 import challenge39
+import hashlib
 
 def genP(L, q):
     minK = (2**(L-1) + q-1)//q
@@ -43,6 +44,39 @@ def areValidKeys(pub, priv):
     x = priv
     return y == pow(g, x, p)
 
+def hash(message):
+    sha1 = hashlib.sha1()
+    sha1.update(message)
+    digest = sha1.digest()
+    return int.from_bytes(digest, byteorder='big')
+
+def sign(message, pub, priv):
+    (p, q, g, y) = pub
+    x = priv
+    while True:
+        k = random.randint(1, q-1)
+        r = pow(g, k, p) % q
+        if r == 0:
+            continue
+        H = hash(message)
+        kInv = challenge39.invmod(k, q)
+        s = (kInv * (H + x * r)) % q
+        if s == 0:
+            continue
+        return (r, s)
+
+def verifySignature(message, signature, pub):
+    (r, s) = signature
+    (p, q, g, y) = pub
+    if r <= 0 or r >= q or s <= 0 or s >= q:
+        return False
+    w = challenge39.invmod(s, q)
+    H = hash(message)
+    u1 = (H * w) % q
+    u2 = (r * w) % q
+    v = ((pow(g, u1, p) * pow(y, u2, p)) % p) % q
+    return v == r
+
 if __name__ == '__main__':
     L = 1024
     N = 160
@@ -50,3 +84,6 @@ if __name__ == '__main__':
     print(p, q, g, areValidParams(L, N, p, q, g))
     (pub, priv) = genKeys(p, q, g)
     print(pub, priv, areValidKeys(pub, priv))
+    message = b'test message'
+    signature = sign(message, pub, priv)
+    print(message, signature, verifySignature(message, signature, pub))
