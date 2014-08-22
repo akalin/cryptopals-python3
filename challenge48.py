@@ -1,5 +1,6 @@
 import challenge39
 import challenge47
+import itertools
 import re
 
 pub, priv = challenge39.genKey(768)
@@ -14,7 +15,11 @@ def parityOracle(c):
 
 def computeNextS(e, n, M, s, B, c0):
     if len(M) > 1:
-        raise Exception('unexpected')
+        while True:
+            s += 1
+            c = (c0 * pow(s, e, n)) % n
+            if parityOracle(c):
+                return (s, c)
     else:
         a, b = M[0]
         r = (2 * (b * s - 2 * B) + n - 1) // n
@@ -28,19 +33,21 @@ def computeNextS(e, n, M, s, B, c0):
             r += 1
 
 def getNextInterval(n, M, s, B):
-    if len(M) > 1:
+    if len(M) == 0:
+        raise Exception('unexpected1')
+    Mnew = []
+    for a, b in M:
+        minR = (a * s - 3 * B + 1 + n - 1) // n
+        maxR = (b * s - 2 * B) // n
+        for r in range(minR, maxR + 1):
+            ai = max(a, (2*B + r*n + s - 1) // s)
+            bi = min(b, (3*B - 1 + r*n) // s)
+            if ai > bi:
+                continue
+            Mnew += [(ai, bi)]
+    if len(Mnew) == 0:
         raise Exception('unexpected')
-    a, b = M[0]
-    minR = (a * s - 3 * B + 1 + n - 1) // n
-    maxR = (b * s - 2 * B) // n
-    if maxR > minR:
-        raise Exception('unexpected')
-    r = minR
-    ai = max(a, (2*B + r*n + s - 1) // s)
-    bi = min(b, (3*B - 1 + r*n) // s)
-    if ai > bi:
-        raise Exception('unexpected')
-    return [(ai, bi)]
+    return Mnew
 
 def deducePlaintext(ciphertext, pub, parityOracle):
     e, n = pub
