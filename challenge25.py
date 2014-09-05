@@ -1,12 +1,11 @@
 from Crypto.Cipher import AES
 from Crypto.Random import random
-import challenge11
 import challenge18
-
 import base64
 import struct
+import util
 
-key = challenge11.randbytes(16)
+key = util.randbytes(16)
 nonce = random.getrandbits(64)
 
 def ciphertext_oracle():

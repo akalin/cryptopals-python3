@@ -3,6 +3,7 @@ import challenge11
 import socket
 import sys
 import challenge34_util
+import util
 
 host = sys.argv[1]
 port = int(sys.argv[2])
@@ -40,7 +41,7 @@ try:
     s = pow(B, a, negotiatedP)
     key = util.derivekey(s)
 
-    iv = challenge11.randbytes(16)
+    iv = util.randbytes(16)
     encryptedMessage = util.encrypt(key, iv, message)
 
     print('C: writing encrypted message...')

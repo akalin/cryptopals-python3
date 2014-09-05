@@ -1,6 +1,6 @@
 from Crypto.Cipher import AES
 import challenge9
-import challenge11
+import util
 
 def encode_profile(profile):
     s = b''
@@ -21,7 +21,7 @@ def profile_for(email):
         ]
     return encode_profile(profile)
 
-key = challenge11.randbytes(16)
+key = util.randbytes(16)
 
 def encrypt_profile_for(email):
     cipher = AES.new(key, AES.MODE_ECB)

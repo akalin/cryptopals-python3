@@ -1,11 +1,11 @@
 from Crypto.Cipher import AES
 from Crypto.Random import random
 import challenge9
-import challenge11
 import challenge15
 import challenge18
+import util
 
-key = challenge11.randbytes(16)
+key = util.randbytes(16)
 nonce = random.getrandbits(64)
 
 def encryptParams(userdata):

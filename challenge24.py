@@ -1,9 +1,9 @@
 from Crypto.Util.strxor import strxor
 from Crypto.Random import random
-import challenge11
 import challenge21
 import struct
 import time
+import util
 
 class MT19937Cipher:
     def __init__(self, key):
@@ -33,7 +33,7 @@ class MT19937Cipher:
 key = random.getrandbits(16)
 
 def encryption_oracle(plaintext):
-    prefix = challenge11.randbytes(random.randint(4, 20))
+    prefix = util.randbytes(random.randint(4, 20))
     cipher = MT19937Cipher(key)
     return cipher.encrypt(prefix + plaintext)
 

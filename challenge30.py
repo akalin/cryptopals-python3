@@ -1,8 +1,8 @@
 from Crypto.Random import random
-import challenge11
 import challenge28
 import md4
 import struct
+import util
 
 def authMD4(key, message):
     md4obj = md4.md4()
@@ -17,7 +17,7 @@ def padMD4(s):
     return s
 
 keylen = random.randint(0, 100)
-key = challenge11.randbytes(keylen)
+key = util.randbytes(keylen)
 
 def validate(message, digest):
     return authMD4(key, message) == digest

@@ -3,8 +3,8 @@ from Crypto.Random import random
 import base64
 import challenge9
 import challenge10
-import challenge11
 import challenge15
+import util
 
 strings = [
     b'MDAwMDAwTm93IHRoYXQgdGhlIHBhcnR5IGlzIGp1bXBpbmc=',
@@ -19,11 +19,11 @@ strings = [
     b'MDAwMDA5aXRoIG15IHJhZy10b3AgZG93biBzbyBteSBoYWlyIGNhbiBibG93'
 ]
 
-key = challenge11.randbytes(16)
+key = util.randbytes(16)
 
 def ciphertext_oracle():
     s = base64.b64decode(random.choice(strings))
-    iv = challenge11.randbytes(16)
+    iv = util.randbytes(16)
     cipher = challenge10.CBC(AES.new(key, AES.MODE_ECB), iv)
     return (iv, cipher.encrypt(challenge9.padPKCS7(s, 16)))
 
@@ -38,7 +38,7 @@ def padding_oracle(iv, s):
 
 def decipher_last_block_previous_byte(iv, s, padding_oracle, knownI, knownP):
     k = len(knownI) + 1
-    prefix = challenge11.randbytes(16 - k)
+    prefix = util.randbytes(16 - k)
     for i in range(256):
         c1 = s[-32:-16] if len(s) > 16 else iv
         c1p = prefix + bytes([i]) + bytes([ch ^ k for ch in knownI])
