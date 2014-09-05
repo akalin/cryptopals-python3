@@ -1,6 +1,5 @@
 from Crypto.Cipher import AES
 import base64
-import challenge9
 import util
 
 encodedSuffix = b'''Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg
@@ -14,7 +13,7 @@ def encryption_oracle(s):
     if key is None:
         key = util.randbytes(16)
     cipher = AES.new(key, AES.MODE_ECB)
-    s = challenge9.padPKCS7(s + base64.b64decode(encodedSuffix), 16)
+    s = util.padPKCS7(s + base64.b64decode(encodedSuffix), 16)
     return cipher.encrypt(s)
 
 def findBlockSize(encryption_oracle):

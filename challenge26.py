@@ -1,6 +1,5 @@
 from Crypto.Cipher import AES
 from Crypto.Random import random
-import challenge9
 import challenge15
 import challenge18
 import util
@@ -14,7 +13,7 @@ def encryptParams(userdata):
     x2 = b';comment2=%20like%20a%20pound%20of%20bacon'
     params = x1 + userdata.encode('ascii') + x2
     cipher = challenge18.CTR(AES.new(key, AES.MODE_ECB), nonce)
-    return cipher.encrypt(challenge9.padPKCS7(params, 16))
+    return cipher.encrypt(util.padPKCS7(params, 16))
 
 def decryptParamsAndCheckAdmin(encryptedParams):
     cipher = challenge18.CTR(AES.new(key, AES.MODE_ECB), nonce)

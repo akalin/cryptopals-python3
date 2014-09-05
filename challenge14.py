@@ -1,7 +1,6 @@
 from Crypto.Cipher import AES
 from Crypto.Random import random
 import base64
-import challenge9
 import challenge12
 import util
 
@@ -18,7 +17,7 @@ def encryption_oracle(s):
         randcount = random.randint(16, 32)
         prefix = util.randbytes(randcount)
     cipher = AES.new(key, AES.MODE_ECB)
-    s = challenge9.padPKCS7(prefix + s + base64.b64decode(challenge12.encodedSuffix), 16)
+    s = util.padPKCS7(prefix + s + base64.b64decode(challenge12.encodedSuffix), 16)
     return cipher.encrypt(s)
 
 def getBlocks(s, blocksize):

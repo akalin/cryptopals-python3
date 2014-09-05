@@ -1,5 +1,4 @@
 from Crypto.Cipher import AES
-import challenge9
 import util
 
 def encode_profile(profile):
@@ -25,7 +24,7 @@ key = util.randbytes(16)
 
 def encrypt_profile_for(email):
     cipher = AES.new(key, AES.MODE_ECB)
-    encoded_profile = challenge9.padPKCS7(profile_for(email), 16)
+    encoded_profile = util.padPKCS7(profile_for(email), 16)
     return cipher.encrypt(encoded_profile)
 
 def unpadPKCS7(s, k):

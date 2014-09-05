@@ -1,10 +1,10 @@
 from Crypto.Cipher import AES
 import base64
-import challenge9
 import challenge15
 import hashlib
 import socket
 import socketserver
+import util
 
 class Util:
     def __init__(self, o):
@@ -43,7 +43,7 @@ class Util:
 
     def encrypt(self, key, iv, message):
         cipher = AES.new(key, AES.MODE_CBC, iv)
-        return cipher.encrypt(challenge9.padPKCS7(message.encode('ascii'), 16))
+        return cipher.encrypt(util.padPKCS7(message.encode('ascii'), 16))
 
     def decrypt(self, key, iv, encryptedMessage):
         cipher = AES.new(key, AES.MODE_CBC, iv)

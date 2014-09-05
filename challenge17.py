@@ -1,7 +1,6 @@
 from Crypto.Cipher import AES
 from Crypto.Random import random
 import base64
-import challenge9
 import challenge10
 import challenge15
 import util
@@ -25,7 +24,7 @@ def ciphertext_oracle():
     s = base64.b64decode(random.choice(strings))
     iv = util.randbytes(16)
     cipher = challenge10.CBC(AES.new(key, AES.MODE_ECB), iv)
-    return (iv, cipher.encrypt(challenge9.padPKCS7(s, 16)))
+    return (iv, cipher.encrypt(util.padPKCS7(s, 16)))
 
 def padding_oracle(iv, s):
     cipher = challenge10.CBC(AES.new(key, AES.MODE_ECB), iv)
