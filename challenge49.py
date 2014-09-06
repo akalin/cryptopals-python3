@@ -1,4 +1,5 @@
 from Crypto.Cipher import AES
+from Crypto.Util.strxor import strxor
 
 import re
 import util
@@ -57,6 +58,16 @@ def attacker_inject_message(m):
     print('A: Injecting', m)
     backend_process_message(m)
 
+def attacker_send_forged_message(sender, recipient, amount):
+    # Assume attacker can create this account.
+    fake_sender = (b'M' * min(len(sender), 11)) + sender[11:]
+    # Assume this message fails or otherwise has no effect.
+    frontend_send_message(fake_sender, recipient, amount)
+    m = attacker_peek_last_sent_message()
+    message, iv, mac = m[:-32], m[-32:-16], m[-16:]
+    forged_message = b'from=' + sender + message[len(sender)+5:]
+    forged_iv = strxor(iv, strxor(message[:16], forged_message[:16]))
+    attacker_inject_message(forged_message + forged_iv + mac)
+
 if __name__ == '__main__':
-    frontend_send_message(b'Alice', b'Bob', b'4')
-    print('A:', attacker_peek_last_sent_message())
+    attacker_send_forged_message(b'Tom', b'Mallory', b'1000000')
