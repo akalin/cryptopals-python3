@@ -104,8 +104,18 @@ def attacker2_peek_last_sent_message():
 
 def attacker2_process_message(m):
     print('A2', m)
-    # TODO(akalin): Insert attack here.
-    backend2_process_message(m)
+    if re.match(b'^from=Tom&', m):
+        message = m[:-16]
+        mac1 = m[-16:]
+        # Assume attacker can create this account, and that this
+        # message fails or otherwise has no effect.
+        frontend2_send_message(b'M', [[b'M', b'0'], [b'Mallory', b'1000000']])
+        m2 = attacker2_peek_last_sent_message()
+        m3 = util.padPKCS7(message, 16) + strxor(mac1, m2[:16]) + m2[16:]
+        print('A2', m3)
+        backend2_process_message(m3)
+    else:
+        backend2_process_message(m)
 
 def frontend2_send_message(sender, tuples):
     global key2
