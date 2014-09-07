@@ -69,5 +69,60 @@ def attacker_send_forged_message(sender, recipient, amount):
     forged_iv = strxor(iv, strxor(message[:16], forged_message[:16]))
     attacker_inject_message(forged_message + forged_iv + mac)
 
+key2 = util.randbytes(16)
+iv2 = b'\x00' * 16
+
+def backend2_process_message(m):
+    global key2
+    global iv2
+    message = m[:-16]
+    mac = m[-16:]
+    if CBC_MAC(key2, iv2, message) != mac:
+        print('S2: Discarding invalid message')
+        return
+    sender = b''
+    tx_list = b''
+    for pair in message.split(b'&'):
+        k, v = pair.split(b'=')
+        if k == b'from':
+            sender = v
+        elif k == b'tx_list':
+            tx_list = v
+    tx_pairs = [p.split(b':', 1) for p in tx_list.split(b';')]
+    for p in tx_pairs:
+        amount = 0
+        m = re.match(b'[0-9]+', p[1])
+        if m:
+            amount = int(m.group(0))
+        print('S2: Transferring', amount, 'from', sender, 'to', p[0])
+
+last_sent_message2 = b''
+
+def attacker2_peek_last_sent_message():
+    global last_sent_message2
+    return last_sent_message2
+
+def attacker2_process_message(m):
+    print('A2', m)
+    # TODO(akalin): Insert attack here.
+    backend2_process_message(m)
+
+def frontend2_send_message(sender, tuples):
+    global key2
+    global iv2
+    global last_sent_message2
+    if not re.match(b'^[A-Za-z]+$', sender):
+        raise Exception(b'Invalid sender ' + sender)
+    for t in tuples:
+        if not re.match(b'^[A-Za-z]+$', t[0]):
+            raise Exception(b'Invalid recipient ' + t[0])
+    recipients = b';'.join([t[0] + b':' + str(int(t[1])).encode('ascii') for t in tuples])
+    message = b'from=' + sender + b'&tx_list=' + recipients
+    last_sent_message2 = message + CBC_MAC(key2, iv2, message)
+    attacker2_process_message(last_sent_message2)
+
 if __name__ == '__main__':
     attacker_send_forged_message(b'Tom', b'Mallory', b'1000000')
+
+    frontend2_send_message(b'Alice', [[b'Bob', b'5'], [b'Charlie', b'10']])
+    frontend2_send_message(b'Tom', [[b'Jerry', b'15'], [b'Susan', b'20']])
