@@ -1,15 +1,18 @@
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
+import base64
 import string
 import util
 import zlib
 
+sessionid = 'TmV2ZXIgcmV2ZWFsIHRoZSBXdS1UYW5nIFNlY3JldCE='
+
 def format_request(P):
     return '''POST / HTTP/1.1
 Host: hapless.com
-Cookie: sessionid=TmV2ZXIgcmV2ZWFsIHRoZSBXdS1UYW5nIFNlY3JldCE=
-Content-Length: {0}
-{1}'''.format(len(P), P)
+Cookie: sessionid={0}
+Content-Length: {1}
+{2}'''.format(sessionid, len(P), P)
 
 def oracle(P):
     request = format_request(P)
@@ -34,7 +37,13 @@ def guessNextByte(oracle, knownStr):
             min_ch_sz = sz
     return min_ch
 
-knownStr = ''
-for i in range(0, 1):
-    knownStr += guessNextByte(oracle, knownStr)
-    print(knownStr)
+def recover_sessionid(oracle):
+    knownStr = ''
+    for i in range(0, 44):
+        knownStr += guessNextByte(oracle, knownStr)
+    return knownStr
+
+recovered_sessionid = recover_sessionid(oracle)
+if recovered_sessionid != sessionid:
+    raise Exception(recovered_sessionid + ' != ' + sessionid)
+print(base64.b64decode(recovered_sessionid))
