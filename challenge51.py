@@ -1,5 +1,6 @@
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
+import string
 import util
 import zlib
 
@@ -19,4 +20,21 @@ def oracle(P):
     encrypted_request = cipher.encrypt(compressed_request)
     return len(encrypted_request)
 
-print(oracle('test'))
+alphabet = string.ascii_letters + string.digits + '+/='
+
+def guessNextByte(oracle, knownStr):
+    min_ch = ''
+    min_ch_sz = 0
+    for i in range(len(alphabet)):
+        ch = alphabet[i]
+        s = 'sessionid=' + knownStr + ch
+        sz = oracle(s * 8)
+        if min_ch == '' or sz < min_ch_sz:
+            min_ch = ch
+            min_ch_sz = sz
+    return min_ch
+
+knownStr = ''
+for i in range(0, 1):
+    knownStr += guessNextByte(oracle, knownStr)
+    print(knownStr)
