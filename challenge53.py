@@ -13,6 +13,33 @@ def findNBlockPrefixCollision(hashFn, iv, blockLength, n):
         hashToLastBlock[h] = s
     raise Exception('unexpected')
 
+def makeExpandablePrefix(hashFn, iv, blockLength, k):
+    blocks = []
+    state = iv
+    for i in range(k):
+        state, s, nBlock = findNBlockPrefixCollision(hashFn, state, blockLength, 2**(k-1-i)+1)
+        blocks += [[s, nBlock]]
+    return state, blocks
+
+def makeExpandedPrefix(blockSize, blocks, k, l):
+    m = b''
+    for i in range(len(blocks)):
+        block = blocks[i]
+        if len(m) // blockSize + len(block[1]) // blockSize + (len(blocks) - i - 1) <= l:
+            nextSegment = block[1]
+        else:
+            nextSegment = block[0]
+        m += nextSegment
+    if len(m) // blockSize != l:
+        raise Exception('unexpected')
+    return m
+
 if __name__ == '__main__':
-    h, s, nBlock = findNBlockPrefixCollision(challenge52.badHash, b'', challenge52.badHashBlockLength, 10)
-    print(h, s, nBlock, challenge52.badHash(s, b'', pad=False), challenge52.badHash(nBlock, b'', pad=False))
+    k = 5
+    state, blocks = makeExpandablePrefix(challenge52.badHash, b'', challenge52.badHashBlockLength, k)
+    for i in range(k, k + 2**k - 1):
+        m = makeExpandedPrefix(challenge52.badHashBlockLength, blocks, k, i)
+        mState = challenge52.badHash(m, b'', pad=False)
+        print(m, mState)
+        if state != mState:
+            raise Exception(state + b' != ' + mState)
