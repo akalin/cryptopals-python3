@@ -37,24 +37,59 @@ def badHashPadMessage(m):
 
 badHash = MerkleDamgard(badHashF, badHashProcessIV, badHashBlockLength, badHashPadMessage)
 
-def findPrefixCollision(hashFn, iv, blockLength, hashLength):
+def findPrefixCollisionFromIter(hashFn, iv, inputIter):
     hashToString = {}
-    for s in (i.to_bytes(blockLength, byteorder='little') for i in range(2**(hashLength*8))):
+    for s in inputIter:
         h = hashFn(s, iv, pad=False)
         if h in hashToString:
             return (h, s, hashToString[h])
         else:
             hashToString[h] = s
-    raise Exception('unexpected')
+    return None, None, None
+
+def findPrefixCollision(hashFn, iv, blockLength, hashLength):
+    state, s1, s2 = findPrefixCollisionFromIter(hashFn, iv, (i.to_bytes(blockLength, byteorder='little') for i in range(2**(hashLength*8))))
+    if state is None:
+        raise Error('unexpected')
+    return state, s1, s2
+
+def extendCollisions(hashFn, state, blockLength, hashLength, collisions):
+    state, s1, s2 = findPrefixCollision(hashFn, state, blockLength, hashLength)
+    return state, [x + s for x in collisions for s in [s1, s2]]
 
 def generateCollisions(hashFn, iv, blockLength, hashLength, n):
     state, s1, s2 = findPrefixCollision(hashFn, iv, blockLength, hashLength)
     collisions = [s1, s2]
     for i in range(n-1):
-        state, s1, s2 = findPrefixCollision(hashFn, state, blockLength, hashLength)
-        collisions = [x + s for x in collisions for s in [s1, s2]]
-    return collisions
+        state, collisions = extendCollisions(hashFn, state, blockLength, hashLength, collisions)
+    return state, collisions
+
+lessBadHashHashLength = 3
+
+def lessBadHashF(messageBlock, state):
+    cipher = Blowfish.new(state, Blowfish.MODE_ECB)
+    newState = cipher.encrypt(messageBlock)[:lessBadHashHashLength]
+    return newState
+
+lessBadHashProcessIV = badHashProcessIV
+lessBadHashBlockLength = badHashBlockLength
+lessBadHashPadMessage = badHashPadMessage
+
+lessBadHash = MerkleDamgard(lessBadHashF, lessBadHashProcessIV, lessBadHashBlockLength, lessBadHashPadMessage)
+
+# hashFn is assumed to be the cheap one.
+def findCollision2(hashFn, iv, blockLength, hashLength, hashFn2, iv2, blockLength2, hashLength2):
+    state, collisions = generateCollisions(hashFn, iv, blockLength, hashLength, hashLength2*4)
+    while True:
+        _, s1, s2 = findPrefixCollisionFromIter(hashFn2, iv2, collisions)
+        if s1 is not None:
+            return s1, s2
+        state, collisions = extendCollisions(hashFn, state, blockLength, hashLength, collisions)
 
 if __name__ == '__main__':
-    for s in generateCollisions(badHash, b'', badHashBlockLength, badHashHashLength, 5):
+    _, collisions = generateCollisions(badHash, b'', badHashBlockLength, badHashHashLength, 5)
+    for s in collisions:
         print(s, badHash(s, b''))
+
+    s1, s2 = findCollision2(badHash, b'', badHashBlockLength, badHashHashLength, lessBadHash, b'', lessBadHashBlockLength, lessBadHashHashLength)
+    print(s1, s2, badHash(s1, b''), badHash(s2, b''), lessBadHash(s1, b''), lessBadHash(s2, b''))
