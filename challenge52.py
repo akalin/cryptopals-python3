@@ -37,5 +37,24 @@ def badHashPadMessage(m):
 
 badHash = MerkleDamgard(badHashF, badHashProcessIV, badHashBlockLength, badHashPadMessage)
 
+def findPrefixCollision(hashFn, iv, blockLength, hashLength):
+    hashToString = {}
+    for s in (i.to_bytes(blockLength, byteorder='little') for i in range(2**(hashLength*8))):
+        h = hashFn(s, iv, pad=False)
+        if h in hashToString:
+            return (h, s, hashToString[h])
+        else:
+            hashToString[h] = s
+    raise Exception('unexpected')
+
+def generateCollisions(hashFn, iv, blockLength, hashLength, n):
+    state, s1, s2 = findPrefixCollision(hashFn, iv, blockLength, hashLength)
+    collisions = [s1, s2]
+    for i in range(n-1):
+        state, s1, s2 = findPrefixCollision(hashFn, state, blockLength, hashLength)
+        collisions = [x + s for x in collisions for s in [s1, s2]]
+    return collisions
+
 if __name__ == '__main__':
-    print(badHash(b'hello world!', b''))
+    for s in generateCollisions(badHash, b'', badHashBlockLength, badHashHashLength, 5):
+        print(s, badHash(s, b''))
