@@ -36,9 +36,29 @@ def generatePrediction(hashFn, padFn, initialStateMap, collisionTree, messageLen
     totalLength = totalBlockLength * blockLength
     return hashFn(padFn(b'', totalLength), collisionTree[-1][0][0], pad=False)
 
+def forgePrediction(hashFn, iv, padFn, initialStateMap, collisionTree, messageLength, blockLength, m):
+    if len(m) > messageLength:
+        raise Exception('message too big')
+    paddedMessageLength = messageLength + (-messageLength % blockLength)
+    m += b'\x00' * (paddedMessageLength - len(m))
+    h = hashFn(m, iv, pad=False)
+
+    glue, h = challenge53.findCollisionInSet(hashFn, h, blockLength, initialStateMap)
+    m += glue
+    suffix = getSuffixFromCollisionTree(initialStateMap, collisionTree, h)
+    m += suffix
+
+    return m
+
 if __name__ == '__main__':
     k = 5
     messageLength = 100
     (initialStateMap, collisionTree) = constructCollisionTree(challenge52.badHash, challenge52.badHashBlockLength, challenge52.badHashHashLength, k)
     prediction = generatePrediction(challenge52.badHash, challenge52.badHashPadMessage, initialStateMap, collisionTree, messageLength, challenge52.badHashBlockLength)
+
     print('Prediction', prediction)
+
+    forgedPrediction = b'Dodgers win the World Series!!'
+    forgedPredictionMessage = forgePrediction(challenge52.badHash, b'', challenge52.badHashPadMessage, initialStateMap, collisionTree, messageLength, challenge52.badHashBlockLength, forgedPrediction)
+    h = challenge52.badHash(forgedPredictionMessage, b'')
+    print('Forged prediction', forgedPredictionMessage, h)
