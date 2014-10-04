@@ -45,6 +45,14 @@ def getIntermediateStates(m, hashFn, iv, blockLength):
         state = hashFn(block, state, pad=False)
         yield state
 
+def findCollisionInSet(hashFn, iv, blockLength, hashSet):
+    for s in (i.to_bytes(blockLength, byteorder='little') for i in range(2**(blockLength*8))):
+        h = hashFn(s, iv, pad=False)
+        if h in hashSet:
+            return s, h
+
+    raise Exception('unexpected')
+
 def findIntermediateStateCollision(hashFn, iv, blockLength, hashLength, intermediateStateIter, minBlockCount):
     statesToIndices = {}
     i = 0
@@ -56,12 +64,8 @@ def findIntermediateStateCollision(hashFn, iv, blockLength, hashLength, intermed
     if not statesToIndices:
         raise Exception('unexpected')
 
-    for s in (i.to_bytes(blockLength, byteorder='little') for i in range(2**(blockLength*8))):
-        h = hashFn(s, iv, pad=False)
-        if h in statesToIndices:
-            return s, statesToIndices[h]
-
-    raise Exception('unexpected')
+    s, h = findCollisionInSet(hashFn, iv, blockLength, statesToIndices)
+    return s, statesToIndices[h]
 
 def findSecondPreimage(m, hashFn, iv, blockLength, hashLength):
     blockCount = (len(m) + blockLength - 1) // blockLength
