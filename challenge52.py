@@ -6,7 +6,7 @@ def MerkleDamgard(f, processIV, blockLength, padMessage):
     def hashFn(m, iv, pad=True):
         H = processIV(iv)
         if pad:
-            m = padMessage(m)
+            m = padMessage(m, len(m))
         elif len(m) % blockLength != 0:
             raise Exception('message of length {0} not a multiple of block length {1}'.format(len(m), blockLength))
         for block in (m[x:x+blockLength] for x in range(0, len(m), blockLength)):
@@ -29,10 +29,10 @@ def badHashProcessIV(iv):
 
 badHashBlockLength = 8
 
-def badHashPadMessage(m):
+def badHashPadMessage(m, l):
     m += b'\x80'
     m += b'\x00' * ((-4 - (len(m) % badHashBlockLength)) % badHashBlockLength)
-    m += struct.pack('>I', len(m))
+    m += struct.pack('>I', l)
     return m
 
 badHash = MerkleDamgard(badHashF, badHashProcessIV, badHashBlockLength, badHashPadMessage)
