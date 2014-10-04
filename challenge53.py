@@ -1,18 +1,22 @@
 import challenge52
 import util
 
+def findStatePrefixCollision(hashFn, iv1, iv2, blockLength):
+    hashToIV2Block = {}
+    for s in (i.to_bytes(blockLength, byteorder='little') for i in range(2**(blockLength*8))):
+        h = hashFn(s, iv1, pad=False)
+        if h in hashToIV2Block:
+            return (h, s, hashToIV2Block[h])
+
+        h = hashFn(s, iv2, pad=False)
+        hashToIV2Block[h] = s
+    raise Exception('unexpected')
+
 def findNBlockPrefixCollision(hashFn, iv, blockLength, n):
     prefix = b'\x00' * (blockLength * (n-1))
     prefixHash = hashFn(prefix, iv, pad=False)
-    hashToLastBlock = {}
-    for s in (i.to_bytes(blockLength, byteorder='little') for i in range(2**(blockLength*8))):
-        h = hashFn(s, iv, pad=False)
-        if h in hashToLastBlock:
-            return (h, s, prefix + hashToLastBlock[h])
-
-        h = hashFn(s, prefixHash, pad=False)
-        hashToLastBlock[h] = s
-    raise Exception('unexpected')
+    h, s1, lastBlock = findStatePrefixCollision(hashFn, iv, prefixHash, blockLength)
+    return h, s1, prefix + lastBlock
 
 def makeExpandablePrefix(hashFn, iv, blockLength, k):
     blocks = []
