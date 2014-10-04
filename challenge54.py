@@ -28,8 +28,17 @@ def getSuffixFromCollisionTree(initialStateMap, collisionTree, iv):
         i //= 2
     return s
 
+def generatePrediction(hashFn, padFn, initialStateMap, collisionTree, messageLength, blockLength):
+    k = len(initialStateMap).bit_length() - 1
+    totalBlockLength = (messageLength + (blockLength - 1)) // blockLength
+    # One glue block, plus k for the suffix.
+    totalBlockLength += k + 1
+    totalLength = totalBlockLength * blockLength
+    return hashFn(padFn(b'', totalLength), collisionTree[-1][0][0], pad=False)
+
 if __name__ == '__main__':
-    (initialStateMap, collisionTree) = constructCollisionTree(challenge52.badHash, challenge52.badHashBlockLength, challenge52.badHashHashLength, 5)
-    for h in initialStateMap:
-        s = getSuffixFromCollisionTree(initialStateMap, collisionTree, h)
-        print(s, challenge52.badHash(s, h, pad=False))
+    k = 5
+    messageLength = 100
+    (initialStateMap, collisionTree) = constructCollisionTree(challenge52.badHash, challenge52.badHashBlockLength, challenge52.badHashHashLength, k)
+    prediction = generatePrediction(challenge52.badHash, challenge52.badHashPadMessage, initialStateMap, collisionTree, messageLength, challenge52.badHashBlockLength)
+    print('Prediction', prediction)
