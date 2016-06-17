@@ -35,7 +35,7 @@ freqs = {
 def score(s):
     score = 0
     for i in s:
-        c = chr(i).lower()
+        c = i.lower()
         if c in freqs:
             score += freqs[c]
     return score
