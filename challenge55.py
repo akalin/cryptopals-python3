@@ -35,11 +35,11 @@ collision_hash2_str = 'c6f3b3fe 1f4833e0 697340fb 214fb9ea'
 
 def read_words_be(s):
     b = binascii.unhexlify(s.replace(' ', ''))
-    words = struct.unpack('>16L', b)
+    words = struct.unpack('>16I', b)
     return list(words)
 
 def words_to_bytes_le(words):
-    return struct.pack('<16L', *words)
+    return struct.pack('<16I', *words)
 
 def assert_md4_state(b, expected_state_str, expected_hash_str):
     md4obj = md4.md4()
