@@ -137,9 +137,9 @@ class md4(object):
         [1,2,3,0, 15,15],
     ]
 
-    def _do_round1(self, X, state):
+    def _do_round1(self, X, state, start=0, end=16):
         #round 1 - F function - (x&y)|(~x & z)
-        for a,b,c,d,k,s in self._round1:
+        for a,b,c,d,k,s in self._round1[start:end]:
             t = (state[a] + F(state[b],state[c],state[d]) + X[k]) & MASK_32
             state[a] = ((t<<s) & MASK_32) + (t>>(32-s))
 

@@ -70,7 +70,43 @@ def assert_collision(s, expected_state_str, expected_hash_str):
     b_prime = words_to_bytes_le(words)
     assert_md4_state(b_prime, expected_state_str, expected_hash_str)
 
+def nth_bit(x, n):
+    return (x & (1 << n)) >> n
+
+def assert_bit(x, n, expected_b):
+    b = nth_bit(x, n)
+    if b != expected_b:
+        raise Exception('expected {}, got {}'.format(expected_b, b))
+
+def assert_collidable_round1(s):
+    words = read_words_be(s)
+
+    md4obj = md4.md4()
+    state = list(md4obj._state)
+    a0, b0, c0, d0 = state
+    md4obj._do_round1(words, state, 0, 4)
+    a1, b1, c1, d1 = state
+
+    assert_bit(a1, 6, nth_bit(b0, 6))
+
+    assert_bit(d1, 6, 0)
+    assert_bit(d1, 7, nth_bit(a1, 7))
+    assert_bit(d1, 10, nth_bit(a1, 10))
+
+    assert_bit(c1, 6, 1)
+    assert_bit(c1, 7, 1)
+    assert_bit(c1, 10, 0)
+    assert_bit(c1, 25, nth_bit(d1, 25))
+
+    assert_bit(b1, 6, 1)
+    assert_bit(b1, 7, 0)
+    assert_bit(b1, 10, 0)
+    assert_bit(b1, 25, 0)
+
 def test_collision():
+    assert_collidable_round1(collision_M1_str)
+    assert_collidable_round1(collision_M2_str)
+
     assert_collision(collision_M1_str, collision_state1_str, collision_hash1_str)
     assert_collision(collision_M2_str, collision_state2_str, collision_hash2_str)
 
