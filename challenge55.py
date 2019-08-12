@@ -38,6 +38,10 @@ def read_words_be(s):
     words = struct.unpack('>16I', b)
     return list(words)
 
+def write_words_be(words):
+    b = struct.pack('>16I', *words)
+    return binascii.hexlify(b).decode('ascii')
+
 def words_to_bytes_le(words):
     return struct.pack('<16I', *words)
 
@@ -275,6 +279,147 @@ def test_collision():
     assert_collision(collision_M1_str, collision_state1_str, collision_hash1_str)
     assert_collision(collision_M2_str, collision_state2_str, collision_hash2_str)
 
+def set_nth_bit(x, n, b):
+    return (x & ~(1 << n)) | (b << n)
+
+def rrot(x, n):
+    return (x >> n) | ((x << (32 - n)) & 0xffffffff)
+
+def do_single_step_mod(words):
+    md4obj = md4.md4()
+    state = list(md4obj._state)
+    a0, b0, c0, d0 = state
+    md4obj._do_round1(words, state, 0, 4)
+    a1, b1, c1, d1 = state
+    md4obj._do_round1(words, state, 4, 8)
+    a2, b2, c2, d2 = state
+    md4obj._do_round1(words, state, 8, 12)
+    a3, b3, c3, d3 = state
+    md4obj._do_round1(words, state, 12, 16)
+    a4, b4, c4, d4 = state
+
+    a1 = set_nth_bit(a1, 6, nth_bit(b0, 6))
+
+    d1 = set_nth_bit(d1, 6, 0)
+    d1 = set_nth_bit(d1, 7, nth_bit(a1, 7))
+    d1 = set_nth_bit(d1, 10, nth_bit(a1, 10))
+
+    c1 = set_nth_bit(c1, 6, 1)
+    c1 = set_nth_bit(c1, 7, 1)
+    c1 = set_nth_bit(c1, 10, 0)
+    c1 = set_nth_bit(c1, 25, nth_bit(d1, 25))
+
+    b1 = set_nth_bit(b1, 6, 1)
+    b1 = set_nth_bit(b1, 7, 0)
+    b1 = set_nth_bit(b1, 10, 0)
+    b1 = set_nth_bit(b1, 25, 0)
+
+    a2 = set_nth_bit(a2, 7, 1)
+    a2 = set_nth_bit(a2, 10, 1)
+    a2 = set_nth_bit(a2, 25, 0)
+    a2 = set_nth_bit(a2, 13, nth_bit(b1, 13))
+
+    d2 = set_nth_bit(d2, 13, 0)
+    d2 = set_nth_bit(d2, 18, nth_bit(a2, 18))
+    d2 = set_nth_bit(d2, 19, nth_bit(a2, 19))
+    d2 = set_nth_bit(d2, 20, nth_bit(a2, 20))
+    d2 = set_nth_bit(d2, 21, nth_bit(a2, 21))
+    d2 = set_nth_bit(d2, 25, 1)
+
+    c2 = set_nth_bit(c2, 12, nth_bit(d2, 12))
+    c2 = set_nth_bit(c2, 13, 0)
+    c2 = set_nth_bit(c2, 14, nth_bit(d2, 14))
+    c2 = set_nth_bit(c2, 18, 0)
+    c2 = set_nth_bit(c2, 19, 0)
+    c2 = set_nth_bit(c2, 20, 1)
+    c2 = set_nth_bit(c2, 21, 0)
+
+    b2 = set_nth_bit(b2, 12, 1)
+    b2 = set_nth_bit(b2, 13, 1)
+    b2 = set_nth_bit(b2, 14, 0)
+    b2 = set_nth_bit(b2, 16, nth_bit(c2, 16))
+    b2 = set_nth_bit(b2, 18, 0)
+    b2 = set_nth_bit(b2, 19, 0)
+    b2 = set_nth_bit(b2, 20, 0)
+    b2 = set_nth_bit(b2, 21, 0)
+
+    a3 = set_nth_bit(a3, 12, 1)
+    a3 = set_nth_bit(a3, 13, 1)
+    a3 = set_nth_bit(a3, 14, 1)
+    a3 = set_nth_bit(a3, 16, 0)
+    a3 = set_nth_bit(a3, 18, 0)
+    a3 = set_nth_bit(a3, 19, 0)
+    a3 = set_nth_bit(a3, 20, 0)
+    a3 = set_nth_bit(a3, 22, nth_bit(b2, 22))
+    a3 = set_nth_bit(a3, 21, 1)
+    a3 = set_nth_bit(a3, 25, nth_bit(b2, 25))
+
+    d3 = set_nth_bit(d3, 12, 1)
+    d3 = set_nth_bit(d3, 13, 1)
+    d3 = set_nth_bit(d3, 14, 1)
+    d3 = set_nth_bit(d3, 16, 0)
+    d3 = set_nth_bit(d3, 19, 0)
+    d3 = set_nth_bit(d3, 20, 1)
+    d3 = set_nth_bit(d3, 21, 1)
+    d3 = set_nth_bit(d3, 22, 0)
+    d3 = set_nth_bit(d3, 25, 1)
+    d3 = set_nth_bit(d3, 29, nth_bit(a2, 29))
+
+    c3 = set_nth_bit(c3, 16, 1)
+    c3 = set_nth_bit(c3, 19, 0)
+    c3 = set_nth_bit(c3, 20, 0)
+    c3 = set_nth_bit(c3, 21, 0)
+    c3 = set_nth_bit(c3, 22, 0)
+    c3 = set_nth_bit(c3, 25, 0)
+    c3 = set_nth_bit(c3, 29, 1)
+    c3 = set_nth_bit(c3, 31, nth_bit(d3, 31))
+
+    b3 = set_nth_bit(b3, 19, 0)
+    b3 = set_nth_bit(b3, 20, 1)
+    b3 = set_nth_bit(b3, 21, 1)
+    b3 = set_nth_bit(b3, 22, nth_bit(c3, 22))
+    b3 = set_nth_bit(b3, 25, 1)
+    b3 = set_nth_bit(b3, 29, 0)
+    b3 = set_nth_bit(b3, 31, 0)
+
+    a4 = set_nth_bit(a4, 22, 0)
+    a4 = set_nth_bit(a4, 25, 0)
+    a4 = set_nth_bit(a4, 26, nth_bit(b3, 26))
+    a4 = set_nth_bit(a4, 28, nth_bit(b3, 28))
+    a4 = set_nth_bit(a4, 29, 1)
+    a4 = set_nth_bit(a4, 31, 0)
+
+    d4 = set_nth_bit(d4, 22, 0)
+    d4 = set_nth_bit(d4, 25, 0)
+    d4 = set_nth_bit(d4, 26, 1)
+    d4 = set_nth_bit(d4, 28, 1)
+    d4 = set_nth_bit(d4, 29, 0)
+    d4 = set_nth_bit(d4, 31, 1)
+
+    c4 = set_nth_bit(c4, 18, nth_bit(d4, 18))
+    c4 = set_nth_bit(c4, 22, 1)
+    c4 = set_nth_bit(c4, 25, 1)
+    c4 = set_nth_bit(c4, 26, 0)
+    c4 = set_nth_bit(c4, 28, 0)
+    c4 = set_nth_bit(c4, 29, 0)
+
+    b4 = set_nth_bit(b4, 18, 0)
+    b4 = set_nth_bit(b4, 25, 1)
+    b4 = set_nth_bit(b4, 26, 1)
+    b4 = set_nth_bit(b4, 28, 1)
+    b4 = set_nth_bit(b4, 29, 0)
+
+    words[0] = (rrot(a1, 3) - a0 - md4.F(b0, c0, d0)) % 2**32
+    words[1] = (rrot(d1, 7) - d0 - md4.F(a1, b0, c0)) % 2**32
+    words[2] = (rrot(c1, 11) - c0 - md4.F(d1, a1, b0)) % 2**32
+    words[3] = (rrot(b1, 19) - b0 - md4.F(c1, d1, a1)) % 2**32
+
 if __name__ == '__main__':
     test_md4()
     test_collision()
+
+    words = [0] * 16
+    do_single_step_mod(words)
+
+    s = write_words_be(words)
+    assert_collidable_round1(s)
