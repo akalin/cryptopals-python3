@@ -86,6 +86,12 @@ def assert_collidable_round1(s):
     a0, b0, c0, d0 = state
     md4obj._do_round1(words, state, 0, 4)
     a1, b1, c1, d1 = state
+    md4obj._do_round1(words, state, 4, 8)
+    a2, b2, c2, d2 = state
+    md4obj._do_round1(words, state, 8, 12)
+    a3, b3, c3, d3 = state
+    md4obj._do_round1(words, state, 12, 16)
+    a4, b4, c4, d4 = state
 
     assert_bit(a1, 6, nth_bit(b0, 6))
 
@@ -102,16 +108,6 @@ def assert_collidable_round1(s):
     assert_bit(b1, 7, 0)
     assert_bit(b1, 10, 0)
     assert_bit(b1, 25, 0)
-
-def assert_collidable_round2(s):
-    words = read_words_be(s)
-
-    md4obj = md4.md4()
-    state = list(md4obj._state)
-    md4obj._do_round1(words, state, 0, 4)
-    a1, b1, c1, d1 = state
-    md4obj._do_round1(words, state, 4, 8)
-    a2, b2, c2, d2 = state
 
     assert_bit(a2, 7, 1)
     assert_bit(a2, 10, 1)
@@ -142,12 +138,48 @@ def assert_collidable_round2(s):
     assert_bit(b2, 20, 0)
     assert_bit(b2, 21, 0)
 
+    assert_bit(a3, 12, 1)
+    assert_bit(a3, 13, 1)
+    assert_bit(a3, 14, 1)
+    assert_bit(a3, 16, 0)
+    assert_bit(a3, 18, 0)
+    assert_bit(a3, 19, 0)
+    assert_bit(a3, 20, 0)
+    assert_bit(a3, 22, nth_bit(b2, 22))
+    assert_bit(a3, 21, 1)
+    assert_bit(a3, 25, nth_bit(b2, 25))
+
+    assert_bit(d3, 12, 1)
+    assert_bit(d3, 13, 1)
+    assert_bit(d3, 14, 1)
+    assert_bit(d3, 16, 0)
+    assert_bit(d3, 19, 0)
+    assert_bit(d3, 20, 1)
+    assert_bit(d3, 21, 1)
+    assert_bit(d3, 22, 0)
+    assert_bit(d3, 25, 1)
+    assert_bit(d3, 30, nth_bit(a2, 30))
+
+    assert_bit(c3, 16, 1)
+    assert_bit(c3, 19, 0)
+    assert_bit(c3, 20, 0)
+    assert_bit(c3, 21, 0)
+    assert_bit(c3, 22, 0)
+    assert_bit(c3, 25, 0)
+    assert_bit(c3, 29, 1)
+    assert_bit(c3, 31, nth_bit(d3, 31))
+
+    assert_bit(b3, 19, 0)
+    assert_bit(b3, 20, 1)
+    assert_bit(b3, 21, 1)
+    assert_bit(b3, 22, nth_bit(c3, 22))
+    assert_bit(b3, 25, 1)
+    assert_bit(b3, 29, 0)
+    assert_bit(b3, 31, 0)
+
 def test_collision():
     assert_collidable_round1(collision_M1_str)
     assert_collidable_round1(collision_M2_str)
-
-    assert_collidable_round2(collision_M1_str)
-    assert_collidable_round2(collision_M2_str)
 
     assert_collision(collision_M1_str, collision_state1_str, collision_hash1_str)
     assert_collision(collision_M2_str, collision_state2_str, collision_hash2_str)
