@@ -137,6 +137,24 @@ class md4(object):
         [1,2,3,0, 15,15],
     ]
 
+    def _do_round1(self, X, state):
+        #round 1 - F function - (x&y)|(~x & z)
+        for a,b,c,d,k,s in self._round1:
+            t = (state[a] + F(state[b],state[c],state[d]) + X[k]) & MASK_32
+            state[a] = ((t<<s) & MASK_32) + (t>>(32-s))
+
+    def _do_round2(self, X, state):
+        #round 2 - G function
+        for a,b,c,d,k,s in self._round2:
+            t = (state[a] + G(state[b],state[c],state[d]) + X[k] + 0x5a827999) & MASK_32
+            state[a] = ((t<<s) & MASK_32) + (t>>(32-s))
+
+    def _do_round3(self, X, state):
+        #round 3 - H function - x ^ y ^ z
+        for a,b,c,d,k,s in self._round3:
+            t = (state[a] + (state[b] ^ state[c] ^ state[d]) + X[k] + 0x6ed9eba1) & MASK_32
+            state[a] = ((t<<s) & MASK_32) + (t>>(32-s))
+
     def _process(self, block):
         "process 64 byte block"
         #unpack block into 16 32-bit ints
@@ -146,20 +164,9 @@ class md4(object):
         orig = self._state
         state = list(orig)
 
-        #round 1 - F function - (x&y)|(~x & z)
-        for a,b,c,d,k,s in self._round1:
-            t = (state[a] + F(state[b],state[c],state[d]) + X[k]) & MASK_32
-            state[a] = ((t<<s) & MASK_32) + (t>>(32-s))
-
-        #round 2 - G function
-        for a,b,c,d,k,s in self._round2:
-            t = (state[a] + G(state[b],state[c],state[d]) + X[k] + 0x5a827999) & MASK_32
-            state[a] = ((t<<s) & MASK_32) + (t>>(32-s))
-
-        #round 3 - H function - x ^ y ^ z
-        for a,b,c,d,k,s in self._round3:
-            t = (state[a] + (state[b] ^ state[c] ^ state[d]) + X[k] + 0x6ed9eba1) & MASK_32
-            state[a] = ((t<<s) & MASK_32) + (t>>(32-s))
+        self._do_round1(X, state)
+        self._do_round2(X, state)
+        self._do_round3(X, state)
 
         #add back into original state
         for i in range(4):
