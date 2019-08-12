@@ -158,7 +158,7 @@ def assert_collidable_round1(s):
     assert_bit(d3, 21, 1)
     assert_bit(d3, 22, 0)
     assert_bit(d3, 25, 1)
-    assert_bit(d3, 30, nth_bit(a2, 30))
+    assert_bit(d3, 29, nth_bit(a2, 29))
 
     assert_bit(c3, 16, 1)
     assert_bit(c3, 19, 0)
@@ -176,6 +176,33 @@ def assert_collidable_round1(s):
     assert_bit(b3, 25, 1)
     assert_bit(b3, 29, 0)
     assert_bit(b3, 31, 0)
+
+    assert_bit(a4, 22, 0)
+    assert_bit(a4, 25, 0)
+    assert_bit(a4, 26, nth_bit(b3, 26))
+    assert_bit(a4, 28, nth_bit(b3, 28))
+    assert_bit(a4, 29, 1)
+    assert_bit(a4, 31, 0)
+
+    assert_bit(d4, 22, 0)
+    assert_bit(d4, 25, 0)
+    assert_bit(d4, 26, 1)
+    assert_bit(d4, 28, 1)
+    assert_bit(d4, 29, 0)
+    assert_bit(d4, 31, 1)
+
+    assert_bit(c4, 18, nth_bit(d4, 18))
+    assert_bit(c4, 22, 1)
+    assert_bit(c4, 25, 1)
+    assert_bit(c4, 26, 0)
+    assert_bit(c4, 28, 0)
+    assert_bit(c4, 29, 0)
+
+    assert_bit(b4, 18, 0)
+    assert_bit(b4, 25, 1)
+    assert_bit(b4, 26, 1)
+    assert_bit(b4, 28, 1)
+    assert_bit(b4, 29, 0)
 
 def test_collision():
     assert_collidable_round1(collision_M1_str)
