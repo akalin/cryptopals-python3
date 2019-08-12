@@ -40,7 +40,9 @@ def read_words_be(s):
 
 def write_words_be(words):
     b = struct.pack('>16I', *words)
-    return binascii.hexlify(b).decode('ascii')
+    s = binascii.hexlify(b).decode('ascii')
+    k = 8
+    return ' '.join(s[i:i+k] for i in range(0, len(s), k))
 
 def words_to_bytes_le(words):
     return struct.pack('<16I', *words)
@@ -414,12 +416,30 @@ def do_single_step_mod(words):
     words[2] = (rrot(c1, 11) - c0 - md4.F(d1, a1, b0)) % 2**32
     words[3] = (rrot(b1, 19) - b0 - md4.F(c1, d1, a1)) % 2**32
 
+    words[4] = (rrot(a2, 3) - a1 - md4.F(b1, c1, d1)) % 2**32
+    words[5] = (rrot(d2, 7) - d1 - md4.F(a2, b1, c1)) % 2**32
+    words[6] = (rrot(c2, 11) - c1 - md4.F(d2, a2, b1)) % 2**32
+    words[7] = (rrot(b2, 19) - b1 - md4.F(c2, d2, a2)) % 2**32
+
+    words[8] = (rrot(a3, 3) - a2 - md4.F(b2, c2, d2)) % 2**32
+    words[9] = (rrot(d3, 7) - d2 - md4.F(a3, b2, c2)) % 2**32
+    words[10] = (rrot(c3, 11) - c2 - md4.F(d3, a3, b2)) % 2**32
+    words[11] = (rrot(b3, 19) - b2 - md4.F(c3, d3, a3)) % 2**32
+
+    words[12] = (rrot(a4, 3) - a3 - md4.F(b3, c3, d3)) % 2**32
+    words[13] = (rrot(d4, 7) - d3 - md4.F(a4, b3, c3)) % 2**32
+    words[14] = (rrot(c4, 11) - c3 - md4.F(d4, a4, b3)) % 2**32
+    words[15] = (rrot(b4, 19) - b3 - md4.F(c4, d4, a4)) % 2**32
+
 if __name__ == '__main__':
     test_md4()
     test_collision()
 
     words = [0] * 16
+    print('s before tweaking = {}'.format(write_words_be(words)))
+
     do_single_step_mod(words)
 
     s = write_words_be(words)
     assert_collidable_round1(s)
+    print('s after tweaking = {}'.format(s))
