@@ -149,9 +149,9 @@ class md4(object):
             t = (state[a] + G(state[b],state[c],state[d]) + X[k] + 0x5a827999) & MASK_32
             state[a] = ((t<<s) & MASK_32) + (t>>(32-s))
 
-    def _do_round3(self, X, state):
+    def _do_round3(self, X, state, start=0, end=16):
         #round 3 - H function - x ^ y ^ z
-        for a,b,c,d,k,s in self._round3:
+        for a,b,c,d,k,s in self._round3[start:end]:
             t = (state[a] + (state[b] ^ state[c] ^ state[d]) + X[k] + 0x6ed9eba1) & MASK_32
             state[a] = ((t<<s) & MASK_32) + (t>>(32-s))
 
