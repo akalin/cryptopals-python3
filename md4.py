@@ -193,6 +193,9 @@ class md4(object):
     def state(self):
         return struct.pack("<4I", *self._state)
 
+    def state_be(self):
+        return struct.pack(">4I", *self._state)
+
     def digest(self, msglen=None):
         #NOTE: backing up state so we can restore it after _process is called,
         #in case object is updated again (this is only attr altered by this method)

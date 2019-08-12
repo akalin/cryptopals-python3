@@ -25,19 +25,16 @@ def test_md4():
 
 # Taken from https://link.springer.com/content/pdf/10.1007%2F11426639_1.pdf .
 collision_M1_str = '4d7a9c83 56cb927a b9d5a578 57a7a5ee de748a3c dcc366b3 b683a020 3b2a5d9f c69d71b3 f9e99198 d79f805e a63bb2e8 45dd8e31 97e31fe5 2794bf08 b9e8c3e9'
+collision_state1_str = '5f5c1a0d 71b36046 1b5435da 9b0d807a'
 collision_hash1_str = '4d7e6a1d efa93d2d de05b45d 864c429b'
 
 def read_words_be(s):
-    word_strs = s.split(' ')
-    words = []
-    for word_str in word_strs:
-        word_bytes = binascii.unhexlify(word_str)
-        (word,) = struct.unpack('>L', word_bytes)
-        words.append(word)
-    return words
+    b = binascii.unhexlify(s.replace(' ', ''))
+    words = struct.unpack('>16L', b)
+    return list(words)
 
 def words_to_bytes_le(words):
-    return b''.join([struct.pack('<L', word) for word in words])
+    return struct.pack('<16L', *words)
 
 def apply_collision_differential(words):
     words[1] = (words[1] + 2**31) % 2**32
@@ -47,8 +44,17 @@ def apply_collision_differential(words):
 def test_collision():
     words = read_words_be(collision_M1_str)
     collision_M1 = words_to_bytes_le(words)
-    h = md4_hexdigest(collision_M1)
+
+    md4obj = md4.md4()
+    md4obj.update(collision_M1)
+
+    expected_s = collision_state1_str.replace(' ', '')
+    s = binascii.hexlify(md4obj.state_be()).decode('ascii')
+    if s != expected_s:
+        raise Exception('expected {}, got {}'.format(expected_s, s))
+
     expected_h = collision_hash1_str.replace(' ', '')
+    h = md4obj.hexdigest()
     if h != expected_h:
         raise Exception('expected {}, got {}'.format(expected_h, h))
 
