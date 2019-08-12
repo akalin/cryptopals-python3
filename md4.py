@@ -190,6 +190,9 @@ class md4(object):
         other._buf = self._buf
         return other
 
+    def state(self):
+        return struct.pack("<4I", *self._state)
+
     def digest(self, msglen=None):
         #NOTE: backing up state so we can restore it after _process is called,
         #in case object is updated again (this is only attr altered by this method)
@@ -211,9 +214,9 @@ class md4(object):
             self._process(block)
 
         #render digest & restore un-finalized state
-        out = struct.pack("<4I", *self._state)
+        out = self.state()
         self._state = orig
         return out
 
-    def hexdigest(self):
-        return (hexlify(self.digest())).decode('ascii')
+    def hexdigest(self, msglen=None):
+        return (hexlify(self.digest(msglen))).decode('ascii')
