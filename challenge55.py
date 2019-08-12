@@ -28,6 +28,11 @@ collision_M1_str = '4d7a9c83 56cb927a b9d5a578 57a7a5ee de748a3c dcc366b3 b683a0
 collision_state1_str = '5f5c1a0d 71b36046 1b5435da 9b0d807a'
 collision_hash1_str = '4d7e6a1d efa93d2d de05b45d 864c429b'
 
+collision_M2_str = '4d7a9c83 56cb927a b9d5a578 57a7a5ee de748a3c dcc366b3 b683a020 3b2a5d9f c69d71b3 f9e99198 d79f805e a63bb2e8 45dd8e31 97e31fe5 f713c240 a7b8cf69'
+# Padded last word with 0 (from string in the paper).
+collision_state2_str = 'e0f76122 c429c56c ebb5e256 0b809793'
+collision_hash2_str = 'c6f3b3fe 1f4833e0 697340fb 214fb9ea'
+
 def read_words_be(s):
     b = binascii.unhexlify(s.replace(' ', ''))
     words = struct.unpack('>16L', b)
@@ -55,15 +60,19 @@ def apply_collision_differential(words):
     words[2] = (words[2] + 2**31 - 2**28) % 2**32
     words[12] = (words[12] - 2**16) % 2**32
 
-def test_collision():
-    words = read_words_be(collision_M1_str)
-    collision_M1 = words_to_bytes_le(words)
+def assert_collision(s, expected_state_str, expected_hash_str):
+    words = read_words_be(s)
+    b = words_to_bytes_le(words)
 
-    assert_md4_state(collision_M1, collision_state1_str, collision_hash1_str)
+    assert_md4_state(b, expected_state_str, expected_hash_str)
 
     apply_collision_differential(words)
-    collision_M1_prime = words_to_bytes_le(words)
-    assert_md4_state(collision_M1_prime, collision_state1_str, collision_hash1_str)
+    b_prime = words_to_bytes_le(words)
+    assert_md4_state(b_prime, expected_state_str, expected_hash_str)
+
+def test_collision():
+    assert_collision(collision_M1_str, collision_state1_str, collision_hash1_str)
+    assert_collision(collision_M2_str, collision_state2_str, collision_hash2_str)
 
 if __name__ == '__main__':
     test_md4()
