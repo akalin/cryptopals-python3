@@ -36,6 +36,20 @@ def read_words_be(s):
 def words_to_bytes_le(words):
     return struct.pack('<16L', *words)
 
+def assert_md4_state(b, expected_state_str, expected_hash_str):
+    md4obj = md4.md4()
+    md4obj.update(b)
+
+    expected_s = expected_state_str.replace(' ', '')
+    s = binascii.hexlify(md4obj.state_be()).decode('ascii')
+    if s != expected_s:
+        raise Exception('expected {}, got {}'.format(expected_s, s))
+
+    expected_h = expected_hash_str.replace(' ', '')
+    h = md4obj.hexdigest()
+    if h != expected_h:
+        raise Exception('expected {}, got {}'.format(expected_h, h))
+
 def apply_collision_differential(words):
     words[1] = (words[1] + 2**31) % 2**32
     words[2] = (words[2] + 2**31 - 2**28) % 2**32
@@ -45,24 +59,11 @@ def test_collision():
     words = read_words_be(collision_M1_str)
     collision_M1 = words_to_bytes_le(words)
 
-    md4obj = md4.md4()
-    md4obj.update(collision_M1)
-
-    expected_s = collision_state1_str.replace(' ', '')
-    s = binascii.hexlify(md4obj.state_be()).decode('ascii')
-    if s != expected_s:
-        raise Exception('expected {}, got {}'.format(expected_s, s))
-
-    expected_h = collision_hash1_str.replace(' ', '')
-    h = md4obj.hexdigest()
-    if h != expected_h:
-        raise Exception('expected {}, got {}'.format(expected_h, h))
+    assert_md4_state(collision_M1, collision_state1_str, collision_hash1_str)
 
     apply_collision_differential(words)
     collision_M1_prime = words_to_bytes_le(words)
-    h = md4_hexdigest(collision_M1_prime)
-    if h != expected_h:
-        raise Exception('expected {}, got {}'.format(expected_h, h))
+    assert_md4_state(collision_M1_prime, collision_state1_str, collision_hash1_str)
 
 if __name__ == '__main__':
     test_md4()
