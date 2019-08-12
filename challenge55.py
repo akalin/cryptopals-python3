@@ -103,9 +103,51 @@ def assert_collidable_round1(s):
     assert_bit(b1, 10, 0)
     assert_bit(b1, 25, 0)
 
+def assert_collidable_round2(s):
+    words = read_words_be(s)
+
+    md4obj = md4.md4()
+    state = list(md4obj._state)
+    md4obj._do_round1(words, state, 0, 4)
+    a1, b1, c1, d1 = state
+    md4obj._do_round1(words, state, 4, 8)
+    a2, b2, c2, d2 = state
+
+    assert_bit(a2, 7, 1)
+    assert_bit(a2, 10, 1)
+    assert_bit(a2, 25, 0)
+    assert_bit(a2, 13, nth_bit(b1, 13))
+
+    assert_bit(d2, 13, 0)
+    assert_bit(d2, 18, nth_bit(a2, 18))
+    assert_bit(d2, 19, nth_bit(a2, 19))
+    assert_bit(d2, 20, nth_bit(a2, 20))
+    assert_bit(d2, 21, nth_bit(a2, 21))
+    assert_bit(d2, 25, 1)
+
+    assert_bit(c2, 12, nth_bit(d2, 12))
+    assert_bit(c2, 13, 0)
+    assert_bit(c2, 14, nth_bit(d2, 14))
+    assert_bit(c2, 18, 0)
+    assert_bit(c2, 19, 0)
+    assert_bit(c2, 20, 1)
+    assert_bit(c2, 21, 0)
+
+    assert_bit(b2, 12, 1)
+    assert_bit(b2, 13, 1)
+    assert_bit(b2, 14, 0)
+    assert_bit(b2, 16, nth_bit(c2, 16))
+    assert_bit(b2, 18, 0)
+    assert_bit(b2, 19, 0)
+    assert_bit(b2, 20, 0)
+    assert_bit(b2, 21, 0)
+
 def test_collision():
     assert_collidable_round1(collision_M1_str)
     assert_collidable_round1(collision_M2_str)
+
+    assert_collidable_round2(collision_M1_str)
+    assert_collidable_round2(collision_M2_str)
 
     assert_collision(collision_M1_str, collision_state1_str, collision_hash1_str)
     assert_collision(collision_M2_str, collision_state2_str, collision_hash2_str)
