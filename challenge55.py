@@ -1,4 +1,6 @@
+import binascii
 import md4
+import struct
 
 def md4_hexdigest(m, msglen=None):
     md4obj = md4.md4()
@@ -25,20 +27,34 @@ def test_md4():
 collision_M1_str = '4d7a9c83 56cb927a b9d5a578 57a7a5ee de748a3c dcc366b3 b683a020 3b2a5d9f c69d71b3 f9e99198 d79f805e a63bb2e8 45dd8e31 97e31fe5 2794bf08 b9e8c3e9'
 collision_hash1_str = '4d7e6a1d efa93d2d de05b45d 864c429b'
 
-def unhexlify_words(s, swap):
+def read_words_be(s):
     word_strs = s.split(' ')
-    b = b''
+    words = []
     for word_str in word_strs:
-        word = bytearray.fromhex(word_str)
-        if swap:
-            word.reverse()
-        b += word
-    return b
+        word_bytes = binascii.unhexlify(word_str)
+        (word,) = struct.unpack('>L', word_bytes)
+        words.append(word)
+    return words
+
+def words_to_bytes_le(words):
+    return b''.join([struct.pack('<L', word) for word in words])
+
+def apply_collision_differential(words):
+    words[1] = (words[1] + 2**31) % 2**32
+    words[2] = (words[2] + 2**31 - 2**28) % 2**32
+    words[12] = (words[12] - 2**16) % 2**32
 
 def test_collision():
-    collision_M1 = unhexlify_words(collision_M1_str, True)
+    words = read_words_be(collision_M1_str)
+    collision_M1 = words_to_bytes_le(words)
     h = md4_hexdigest(collision_M1)
     expected_h = collision_hash1_str.replace(' ', '')
+    if h != expected_h:
+        raise Exception('expected {}, got {}'.format(expected_h, h))
+
+    apply_collision_differential(words)
+    collision_M1_prime = words_to_bytes_le(words)
+    h = md4_hexdigest(collision_M1_prime)
     if h != expected_h:
         raise Exception('expected {}, got {}'.format(expected_h, h))
 
