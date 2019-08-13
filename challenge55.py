@@ -406,104 +406,131 @@ def do_single_step_mod(words):
     b4 = set_nth_bit(b4, 28, 1)
     b4 = set_nth_bit(b4, 29, 0)
 
-    words[0] = (rrot(a1, 3) - a0 - md4.F(b0, c0, d0)) % 2**32
-    words[1] = (rrot(d1, 7) - d0 - md4.F(a1, b0, c0)) % 2**32
-    words[2] = (rrot(c1, 11) - c0 - md4.F(d1, a1, b0)) % 2**32
-    words[3] = (rrot(b1, 19) - b0 - md4.F(c1, d1, a1)) % 2**32
+    words_new = list(words)
 
-    words[4] = (rrot(a2, 3) - a1 - md4.F(b1, c1, d1)) % 2**32
-    words[5] = (rrot(d2, 7) - d1 - md4.F(a2, b1, c1)) % 2**32
-    words[6] = (rrot(c2, 11) - c1 - md4.F(d2, a2, b1)) % 2**32
-    words[7] = (rrot(b2, 19) - b1 - md4.F(c2, d2, a2)) % 2**32
+    words_new[0] = (rrot(a1, 3) - a0 - md4.F(b0, c0, d0)) % 2**32
+    words_new[1] = (rrot(d1, 7) - d0 - md4.F(a1, b0, c0)) % 2**32
+    words_new[2] = (rrot(c1, 11) - c0 - md4.F(d1, a1, b0)) % 2**32
+    words_new[3] = (rrot(b1, 19) - b0 - md4.F(c1, d1, a1)) % 2**32
 
-    words[8] = (rrot(a3, 3) - a2 - md4.F(b2, c2, d2)) % 2**32
-    words[9] = (rrot(d3, 7) - d2 - md4.F(a3, b2, c2)) % 2**32
-    words[10] = (rrot(c3, 11) - c2 - md4.F(d3, a3, b2)) % 2**32
-    words[11] = (rrot(b3, 19) - b2 - md4.F(c3, d3, a3)) % 2**32
+    words_new[4] = (rrot(a2, 3) - a1 - md4.F(b1, c1, d1)) % 2**32
+    words_new[5] = (rrot(d2, 7) - d1 - md4.F(a2, b1, c1)) % 2**32
+    words_new[6] = (rrot(c2, 11) - c1 - md4.F(d2, a2, b1)) % 2**32
+    words_new[7] = (rrot(b2, 19) - b1 - md4.F(c2, d2, a2)) % 2**32
 
-    words[12] = (rrot(a4, 3) - a3 - md4.F(b3, c3, d3)) % 2**32
-    words[13] = (rrot(d4, 7) - d3 - md4.F(a4, b3, c3)) % 2**32
-    words[14] = (rrot(c4, 11) - c3 - md4.F(d4, a4, b3)) % 2**32
-    words[15] = (rrot(b4, 19) - b3 - md4.F(c4, d4, a4)) % 2**32
+    words_new[8] = (rrot(a3, 3) - a2 - md4.F(b2, c2, d2)) % 2**32
+    words_new[9] = (rrot(d3, 7) - d2 - md4.F(a3, b2, c2)) % 2**32
+    words_new[10] = (rrot(c3, 11) - c2 - md4.F(d3, a3, b2)) % 2**32
+    words_new[11] = (rrot(b3, 19) - b2 - md4.F(c3, d3, a3)) % 2**32
+
+    words_new[12] = (rrot(a4, 3) - a3 - md4.F(b3, c3, d3)) % 2**32
+    words_new[13] = (rrot(d4, 7) - d3 - md4.F(a4, b3, c3)) % 2**32
+    words_new[14] = (rrot(c4, 11) - c3 - md4.F(d4, a4, b3)) % 2**32
+    words_new[15] = (rrot(b4, 19) - b3 - md4.F(c4, d4, a4)) % 2**32
+
+    return words_new
 
 def lrot(x, n):
     return rrot(x, 32 - n)
 
-def do_a5_mod(words, a1, a5, i, expected_b, a0, b0, c0, d0, b1, c1, d1, a2, a4, b4, c4, d4):
-    if expected_b == nth_bit(a5, i):
-        return a1, a5
-
-    a5_new = set_nth_bit(a5, i, expected_b)
-
-    words[0] = (rrot(a5_new, 3) - a4 - md4.G(b4, c4, d4) - 0x5a827999) % 2**32
-
-    a1_new = lrot((a0 + md4.F(b0, c0, d0) + words[0]) % 2**32, 3)
-
-    words[1] = (rrot(d1, 7) - d0 - md4.F(a1_new, b0, c0)) % 2**32
-    words[2] = (rrot(c1, 11) - c0 - md4.F(d1, a1_new, b0)) % 2**32
-    words[3] = (rrot(b1, 19) - b0 - md4.F(c1, d1, a1_new)) % 2**32
-    words[4] = (rrot(a2, 3) - a1_new - md4.F(b1, c1, d1)) % 2**32
-
-    return a1_new, a5_new
-
-def do_d5_mod(words, a2, d5, i, expected_b, a1, b1, c1, d1, b2, c2, d2, a3, b4, c4, d4, a5):
-    if expected_b == nth_bit(d5, i):
-        return a2, d5
-
-    d5_exp = lrot((d4 + md4.G(a5, b4, c4) + words[4] + 0x5a827999) % 2**32, 5)
-
-    d5_new = set_nth_bit(d5, i, expected_b)
-
-    a2_exp = lrot((a1 + md4.F(b1, c1, d1) + words[4]) % 2**32, 3)
-
-    words4_exp = (rrot(d5, 5) - d4 - md4.G(a5, b4, c4) - 0x5a827999) % 2**32
-
-    words[4] = (rrot(d5_new, 5) - d4 - md4.G(a5, b4, c4) - 0x5a827999) % 2**32
-
-    a2_new = lrot((a1 + md4.F(b1, c1, d1) + words[4]) % 2**32, 3)
-
-    words[5] = (rrot(d2, 7) - d1 - md4.F(a2_new, b1, c1)) % 2**32
-    words[6] = (rrot(c2, 11) - c1 - md4.F(d2, a2_new, b1)) % 2**32
-    words[7] = (rrot(b2, 19) - b1 - md4.F(c2, d2, a2_new)) % 2**32
-    words[8] = (rrot(a3, 3) - a2_new - md4.F(b2, c2, d2)) % 2**32
-
-    return a2_new, d5_new
-
-def do_multi_step_mod(words):
+def do_a5_mod(words, initial_state, round1_states, round2_states, a5i, b):
     a0, b0, c0, d0 = md4.INITIAL_STATE
-    round1_states = md4.do_round1(words, md4.INITIAL_STATE)
     a1, b1, c1, d1 = round1_states[0]
     a2, b2, c2, d2 = round1_states[1]
     a3, b3, c3, d3 = round1_states[2]
     a4, b4, c4, d4 = round1_states[3]
-
-    round2_states = md4.do_round2(words, round1_states[-1])
     a5, b5, c5, d5 = round2_states[0]
     a6, b6, c6, d6 = round2_states[1]
 
-    a1, a5 = do_a5_mod(words, a1, a5, 18, nth_bit(c4, 18), a0, b0, c0, d0, b1, c1, d1, a2, a4, b4, c4, d4)
-    a1, a5 = do_a5_mod(words, a1, a5, 25, 1, a0, b0, c0, d0, b1, c1, d1, a2, a4, b4, c4, d4)
-    a1, a5 = do_a5_mod(words, a1, a5, 26, 0, a0, b0, c0, d0, b1, c1, d1, a2, a4, b4, c4, d4)
-    a1, a5 = do_a5_mod(words, a1, a5, 28, 1, a0, b0, c0, d0, b1, c1, d1, a2, a4, b4, c4, d4)
-    a1, a5 = do_a5_mod(words, a1, a5, 31, 1, a0, b0, c0, d0, b1, c1, d1, a2, a4, b4, c4, d4)
+    if nth_bit(a5, a5i) == b:
+        return words, round1_states, round2_states
 
+    a5_new = set_nth_bit(a5, a5i, b)
+
+    words_new = list(words)
+    words_new[0] = (rrot(a5_new, 3) - a4 - md4.G(b4, c4, d4) - 0x5a827999) % 2**32
+
+    a1_new = lrot((a0 + md4.F(b0, c0, d0) + words_new[0]) % 2**32, 3)
+
+    words_new[1] = (rrot(d1, 7) - d0 - md4.F(a1_new, b0, c0)) % 2**32
+    words_new[2] = (rrot(c1, 11) - c0 - md4.F(d1, a1_new, b0)) % 2**32
+    words_new[3] = (rrot(b1, 19) - b0 - md4.F(c1, d1, a1_new)) % 2**32
+    words_new[4] = (rrot(a2, 3) - a1_new - md4.F(b1, c1, d1)) % 2**32
+
+    round1_states_new = list(round1_states)
+    round1_states_new[0] = list(round1_states_new[0])
+    round1_states_new[0][0] = a1_new
+
+    round2_states_new = list(round2_states)
+    round2_states_new[0] = list(round2_states_new[0])
+    round2_states_new[0][0] = a5_new
+
+    return words_new, round1_states_new, round2_states_new
+
+def do_d5_mod(words, initial_state, round1_states, round2_states, d5i, b):
     a0, b0, c0, d0 = md4.INITIAL_STATE
-    states = md4.do_round1(words, md4.INITIAL_STATE)
-    a1, b1, c1, d1 = states[0]
-    a2, b2, c2, d2 = states[1]
-    a3, b3, c3, d3 = states[2]
-    a4, b4, c4, d4 = states[3]
+    a1, b1, c1, d1 = round1_states[0]
+    a2, b2, c2, d2 = round1_states[1]
+    a3, b3, c3, d3 = round1_states[2]
+    a4, b4, c4, d4 = round1_states[3]
+    a5, b5, c5, d5 = round2_states[0]
+    a6, b6, c6, d6 = round2_states[1]
 
-    a2, d5 = do_d5_mod(words, a2, d5, 18, nth_bit(a5, 18), a1, b1, c1, d1, b2, c2, d2, a3, b4, c4, d4, a5)
-    a2, d5 = do_d5_mod(words, a2, d5, 25, nth_bit(b4, 25), a1, b1, c1, d1, b2, c2, d2, a3, b4, c4, d4, a5)
-    a2, d5 = do_d5_mod(words, a2, d5, 26, nth_bit(b4, 26), a1, b1, c1, d1, b2, c2, d2, a3, b4, c4, d4, a5)
-    a2, d5 = do_d5_mod(words, a2, d5, 28, nth_bit(b4, 28), a1, b1, c1, d1, b2, c2, d2, a3, b4, c4, d4, a5)
+    if nth_bit(d5, d5i) == b:
+        return words, round1_states, round2_states
+
+    d5_new = set_nth_bit(d5, i, expected_b)
+
+    words_new = list(words)
+    words_new[4] = (rrot(d5_new, 5) - d4 - md4.G(a5, b4, c4) - 0x5a827999) % 2**32
+
+    a2_new = lrot((a1 + md4.F(b1, c1, d1) + words_new[4]) % 2**32, 3)
+
+    words_new[5] = (rrot(d2, 7) - d1 - md4.F(a2_new, b1, c1)) % 2**32
+    words_new[6] = (rrot(c2, 11) - c1 - md4.F(d2, a2_new, b1)) % 2**32
+    words_new[7] = (rrot(b2, 19) - b1 - md4.F(c2, d2, a2_new)) % 2**32
+    words_new[8] = (rrot(a3, 3) - a2_new - md4.F(b2, c2, d2)) % 2**32
+
+    round1_states_new = list(round1_states)
+    round1_states_new[1] = list(round1_states_new[1])
+    round1_states_new[1][0] = a2_new
+
+    round2_states_new = list(round2_states)
+    round2_states_new[0] = list(round2_states_new[0])
+    round2_states_new[0][3] = d5_new
+
+    return words_new, round1_states_new, round2_states_new
+
+def do_multi_step_mod(words):
+    initial_state = md4.INITIAL_STATE
+    round1_states = md4.do_round1(words, md4.INITIAL_STATE)
+    _, _, _, c4 = round1_states[-1]
+    round2_states = md4.do_round2(words, round1_states[-1])
+
+    words, round1_states, round2_states = do_a5_mod(words, initial_state, round1_states, round2_states, 18, nth_bit(c4, 18))
+    words, round1_states, round2_states = do_a5_mod(words, initial_state, round1_states, round2_states, 25, 1)
+    words, round1_states, round2_states = do_a5_mod(words, initial_state, round1_states, round2_states, 26, 0)
+    words, round1_states, round2_states = do_a5_mod(words, initial_state, round1_states, round2_states, 28, 1)
+    words, round1_states, round2_states = do_a5_mod(words, initial_state, round1_states, round2_states, 31, 1)
+
+    initial_state = md4.INITIAL_STATE
+    round1_states = md4.do_round1(words, md4.INITIAL_STATE)
+    _, _, b4, _ = round1_states[-1]
+    round2_states = md4.do_round2(words, round1_states[-1])
+    a5, _, _, _ = round2_states[0]
+
+    words, round1_states, round2_states = do_d5_mod(words, initial_state, round1_states, round2_states, 18, nth_bit(a5, 18))
+    words, round1_states, round2_states = do_d5_mod(words, initial_state, round1_states, round2_states, 25, nth_bit(b4, 25))
+    words, round1_states, round2_states = do_d5_mod(words, initial_state, round1_states, round2_states, 26, nth_bit(b4, 26))
+    words, round1_states, round2_states = do_d5_mod(words, initial_state, round1_states, round2_states, 28, nth_bit(b4, 28))
+
+    return words
 
 def tweak_and_test(words, verbose=False):
     if verbose:
         print('s before tweaking = {}'.format(write_words_be(words)))
 
-    do_single_step_mod(words)
+    words = do_single_step_mod(words)
 
     s = write_words_be(words)
     assert_collidable_round1(s)
@@ -511,9 +538,7 @@ def tweak_and_test(words, verbose=False):
     if verbose:
         print('s after tweaking for round 1 = {}'.format(s))
 
-    do_multi_step_mod(words)
-    do_single_step_mod(words)
-    do_multi_step_mod(words)
+    words = do_multi_step_mod(words)
 
     s = write_words_be(words)
     assert_collidable_round1(s)
