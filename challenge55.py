@@ -323,10 +323,9 @@ def test_collision():
     assert_collision(collision_M1_str, collision_state1_str, collision_hash1_str)
     assert_collision(collision_M2_str, collision_state2_str, collision_hash2_str)
 
-def invert_round1(initial_state, states):
+def invert_round1(s0, states):
     X = [0] * 16
 
-    s0 = initial_state
     s1, s2, s3, s4 = states
 
     MASK_32 = 0xffffffff
@@ -354,10 +353,14 @@ def invert_round1(initial_state, states):
 
     return X
 
-def test_invert_round1():
-    for i in range(1000):
+def randX():
         b = util.randbytes(64)
         X = list(struct.unpack('>16I', b))
+        return X
+
+def test_invert_round1():
+    for i in range(1000):
+        X = randX()
         state = md4.do_round1(X, md4.INITIAL_STATE)
         X2 = invert_round1(md4.INITIAL_STATE, state)
         if X != X2:
@@ -512,6 +515,64 @@ def do_single_step_mod(words, extra=True):
 
     return invert_round1(s0, [s1, s2, s3, s4])
 
+def dump_s(s):
+    return '[{:02x} {:02x} {:02x} {:02x}]'.format(s[0], s[1], s[2], s[3])
+
+def flip_nth_bit(x, n):
+    return set_nth_bit(x, n, 1 - nth_bit(x, n))
+
+def flip_a5_bit(X, a5i):
+    s0 = md4.INITIAL_STATE
+    [s1, s2, s3, s4] = md4.do_round1(X, s0)
+    [s5, s6, s7, s8] = md4.do_round2(X, s4)
+
+    a5, _, _, _ = s5
+    a5_new = flip_nth_bit(a5, a5i)
+
+    X_new = list(X)
+    X_new[0] = (rrot32(a5_new, 3) - s4[0] - md4.G(s4[1], s4[2], s4[3]) - md4.ROUND2_K) & 0xffffffff
+
+    a5_new2 = lrot32((s4[0] + md4.G(s4[1], s4[2], s4[3]) + X_new[0] + md4.ROUND2_K), 3)
+    if a5_new != a5_new2:
+        raise Exception('expected {:02x}, got {:02x}'.format(a5_new, a5_new2))
+
+    [[a1_new, _, _, _], _, _, _] = md4.do_round1(X_new, s0)
+
+    s1_new = [a1_new, s1[1], s1[2], s1[3]]
+    Y = invert_round1(s0, [s1_new, s2, s3, s4])
+
+    if X_new[0] != Y[0]:
+        raise Exception('expected {:02x}, got {:02x}'.format(X_new[0], Y[0]))
+
+    X_new[1] = Y[1]
+    X_new[2] = Y[2]
+    X_new[3] = Y[3]
+    X_new[4] = Y[4]
+
+    for i in range(5, 16):
+        if X_new[i] != Y[i]:
+            raise Exception('expected Y[{}]={:02x}, got {:02x}'.format(i, X_new[i], Y[i]))
+
+    round1_states_new = md4.do_round1(X_new, s0)
+    expected_round1_states = [s1_new, s2, s3, s4]
+    for i in range(4):
+        if round1_states_new[i] != expected_round1_states[i]:
+            raise Exception('expected s[{}]={}, got {}'.format(i, dump_s(expected_round1_states[i]), dump_s(round1_states_new[i])))
+
+    round2_states_new = md4.do_round2(X_new, round1_states_new[-1])
+    expected_round1_states = [round2_states_new[0], s6, s7, s8]
+    a5_new2, _, _, _ = round2_states_new[0]
+    if a5_new2 != a5_new:
+        raise Exception('expected {:02x}, got {:02x}'.format(a5_new, a5_new2))
+
+    return X_new
+
+def test_flip_a5_bit():
+    for i in range(1000):
+        X = randX()
+        for a5i in [18, 25, 26, 28, 31]:
+            flip_a5_bit(X, a5i)
+
 def do_a5_mod(words, a5i, b):
     s = write_words_be(words)
     assert_collidable_round1(s, extra=True)
@@ -523,39 +584,10 @@ def do_a5_mod(words, a5i, b):
     if nth_bit(a5, a5i) == b:
         return words
 
-    a0, b0, c0, d0 = md4.INITIAL_STATE
-
-    a1, b1, c1, d1 = round1_states[0]
-    a2, b2, c2, d2 = round1_states[1]
-    a3, b3, c3, d3 = round1_states[2]
-    a4, b4, c4, d4 = round1_states[3]
-
-    a5_new = set_nth_bit(a5, a5i, b)
-
-    words_new = list(words)
-    words_new[0] = (rrot32(a5_new, 3) - a4 - md4.G(b4, c4, d4) - md4.ROUND2_K) & 0xffffffff
-
-    a1_new = lrot32(a0 + md4.F(b0, c0, d0) + words_new[0], 3)
-
-    words_new[1] = (rrot32(d1, 7) - d0 - md4.F(a1_new, b0, c0)) & 0xffffffff
-    words_new[2] = (rrot32(c1, 11) - c0 - md4.F(d1, a1_new, b0)) & 0xffffffff
-    words_new[3] = (rrot32(b1, 19) - b0 - md4.F(c1, d1, a1_new)) & 0xffffffff
-    words_new[4] = (rrot32(a2, 3) - a1_new - md4.F(b1, c1, d1)) & 0xffffffff
+    words_new = flip_a5_bit(words, a5i)
 
     s = write_words_be(words_new)
     assert_collidable_round1(s, extra=True)
-
-    round1_states_new = md4.do_round1(words_new)
-    expected_round1_states = list(round1_states)
-    expected_round1_states[0] = list(expected_round1_states[0])
-    expected_round1_states[0][0] = a1_new
-    if round1_states_new != expected_round1_states:
-        raise Exception('expected {}, got {}'.format(expected_round1_states, round1_states_new))
-
-    round2_states_new = md4.do_round2(words_new, round1_states_new[-1])
-    a5_new2, _, _, _ = round2_states_new[0]
-    if a5_new2 != a5_new:
-        raise Exception('expected {}, got {}'.format(a5_new, a5_new2))
 
     return words_new
 
@@ -734,9 +766,7 @@ def find_collision(n):
     for i in range(n):
         if i % 1000 == 0:
             print('Iteration {}/{}'.format(i + 1, n))
-        b = util.randbytes(64)
-        words = struct.unpack('>16I', b)
-        words = list(words)
+        words = randX()
         result = tweak_and_test(words)
         if result:
             break
@@ -745,6 +775,7 @@ if __name__ == '__main__':
     test_md4()
     test_collision()
     test_invert_round1()
+    test_flip_a5_bit()
 
     words = [0] * 16
     tweak_and_test(words, True)
