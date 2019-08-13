@@ -29,7 +29,7 @@ def forgeHash(keylen, message, digest, suffix):
     paddedForgedMessageWithKey = padMD4(key + message) + suffix
     forgedMessage = paddedForgedMessageWithKey[keylen:]
     h = struct.unpack('<4I', digest)
-    md4obj = md4.md4(h[0], h[1], h[2], h[3])
+    md4obj = md4.md4(h)
     md4obj.update(suffix)
     forgedDigest = md4obj.digest(len(paddedForgedMessageWithKey) * 8)
     return (forgedMessage, forgedDigest)

@@ -21,6 +21,47 @@ def G(x,y,z):
 
 MASK_32 = 2**32-1
 
+INITIAL_STATE = [
+    0x67452301,
+    0xefcdab89,
+    0x98badcfe,
+    0x10325476,
+]
+
+#round 1 table - [abcd k s]
+_round1 = [
+    [0,1,2,3, 0,3],
+    [3,0,1,2, 1,7],
+    [2,3,0,1, 2,11],
+    [1,2,3,0, 3,19],
+
+    [0,1,2,3, 4,3],
+    [3,0,1,2, 5,7],
+    [2,3,0,1, 6,11],
+    [1,2,3,0, 7,19],
+
+    [0,1,2,3, 8,3],
+    [3,0,1,2, 9,7],
+    [2,3,0,1, 10,11],
+    [1,2,3,0, 11,19],
+
+    [0,1,2,3, 12,3],
+    [3,0,1,2, 13,7],
+    [2,3,0,1, 14,11],
+    [1,2,3,0, 15,19],
+]
+
+def do_round1(X, state):
+    state = list(state)
+    states = [list(state)]
+    #round 1 - F function - (x&y)|(~x & z)
+    for i, (a,b,c,d,k,s) in enumerate(_round1):
+        t = (state[a] + F(state[b],state[c],state[d]) + X[k]) & MASK_32
+        state[a] = ((t<<s) & MASK_32) + (t>>(32-s))
+        if i % 4 == 3:
+            states.append(list(state))
+    return states
+
 #=========================================================================
 #main class
 #=========================================================================
@@ -58,38 +99,13 @@ class md4(object):
     _state = None #list of [a,b,c,d] 32 bit ints used as internal register
     _buf = None #data processed in 64 byte blocks, this holds leftover from last update
 
-    _h0 = 0x67452301
-    _h1 = 0xefcdab89
-    _h2 = 0x98badcfe
-    _h3 = 0x10325476
-
-    def __init__(self, h0 = _h0, h1 = _h1, h2 = _h2, h3 = _h3):
+    def __init__(self, initial_state=None):
         self._count = 0
-        self._state = [h0, h1, h2, h3]
+        if initial_state:
+            self._state = list(initial_state)
+        else:
+            self._state = list(INITIAL_STATE)
         self._buf = b''
-
-    #round 1 table - [abcd k s]
-    _round1 = [
-        [0,1,2,3, 0,3],
-        [3,0,1,2, 1,7],
-        [2,3,0,1, 2,11],
-        [1,2,3,0, 3,19],
-
-        [0,1,2,3, 4,3],
-        [3,0,1,2, 5,7],
-        [2,3,0,1, 6,11],
-        [1,2,3,0, 7,19],
-
-        [0,1,2,3, 8,3],
-        [3,0,1,2, 9,7],
-        [2,3,0,1, 10,11],
-        [1,2,3,0, 11,19],
-
-        [0,1,2,3, 12,3],
-        [3,0,1,2, 13,7],
-        [2,3,0,1, 14,11],
-        [1,2,3,0, 15,19],
-    ]
 
     #round 2 table - [abcd k s]
     _round2 = [
@@ -137,12 +153,6 @@ class md4(object):
         [1,2,3,0, 15,15],
     ]
 
-    def _do_round1(self, X, state, start=0, end=16):
-        #round 1 - F function - (x&y)|(~x & z)
-        for a,b,c,d,k,s in self._round1[start:end]:
-            t = (state[a] + F(state[b],state[c],state[d]) + X[k]) & MASK_32
-            state[a] = ((t<<s) & MASK_32) + (t>>(32-s))
-
     def _do_round2(self, X, state, start=0, end=16):
         #round 2 - G function
         for a,b,c,d,k,s in self._round2[start:end]:
@@ -160,17 +170,14 @@ class md4(object):
         #unpack block into 16 32-bit ints
         X = struct.unpack("<16I", block)
 
-        #clone state
-        orig = self._state
-        state = list(orig)
-
-        self._do_round1(X, state)
+        round1_states = do_round1(X, self._state)
+        state = round1_states[-1]
         self._do_round2(X, state)
         self._do_round3(X, state)
 
         #add back into original state
         for i in range(4):
-            orig[i] = (orig[i]+state[i]) & MASK_32
+            self._state[i] = (self._state[i]+state[i]) & MASK_32
 
     def update(self, content):
         if not isinstance(content, bytes):
