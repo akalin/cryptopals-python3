@@ -5,7 +5,7 @@
 from binascii import hexlify
 import struct
 from warnings import warn
-from util import lrot32
+from util import lrot32, rrot32
 #local
 __all__ = [ "md4" ]
 #=========================================================================
@@ -33,7 +33,7 @@ def do_round1(X, initial_state=INITIAL_STATE):
 
     #round 1 - F function - (x&y)|(~x & z)
 
-    s0 = list(initial_state)
+    s0 = initial_state
 
     s1 = [0, 0, 0, 0]
 
@@ -64,6 +64,34 @@ def do_round1(X, initial_state=INITIAL_STATE):
     s4[1] = lrot32((s3[1] + F(s4[2], s4[3], s4[0]) + X[15]), 19)
 
     return [s1, s2, s3, s4]
+
+def invert_round1(initial_state, states):
+    X = [0] * 16
+
+    s0 = initial_state
+    s1, s2, s3, s4 = states
+
+    X[ 0] = (rrot32(s1[0],  3) - s0[0] - F(s0[1], s0[2], s0[3])) & MASK_32
+    X[ 1] = (rrot32(s1[3],  7) - s0[3] - F(s1[0], s0[1], s0[2])) & MASK_32
+    X[ 2] = (rrot32(s1[2], 11) - s0[2] - F(s1[3], s1[0], s0[1])) & MASK_32
+    X[ 3] = (rrot32(s1[1], 19) - s0[1] - F(s1[2], s1[3], s1[0])) & MASK_32
+
+    X[ 4] = (rrot32(s2[0],  3) - s1[0] - F(s1[1], s1[2], s1[3])) & MASK_32
+    X[ 5] = (rrot32(s2[3],  7) - s1[3] - F(s2[0], s1[1], s1[2])) & MASK_32
+    X[ 6] = (rrot32(s2[2], 11) - s1[2] - F(s2[3], s2[0], s1[1])) & MASK_32
+    X[ 7] = (rrot32(s2[1], 19) - s1[1] - F(s2[2], s2[3], s2[0])) & MASK_32
+
+    X[ 8] = (rrot32(s3[0],  3) - s2[0] - F(s2[1], s2[2], s2[3])) & MASK_32
+    X[ 9] = (rrot32(s3[3],  7) - s2[3] - F(s3[0], s2[1], s2[2])) & MASK_32
+    X[10] = (rrot32(s3[2], 11) - s2[2] - F(s3[3], s3[0], s2[1])) & MASK_32
+    X[11] = (rrot32(s3[1], 19) - s2[1] - F(s3[2], s3[3], s3[0])) & MASK_32
+
+    X[12] = (rrot32(s4[0],  3) - s3[0] - F(s3[1], s3[2], s3[3])) & MASK_32
+    X[13] = (rrot32(s4[3],  7) - s3[3] - F(s4[0], s3[1], s3[2])) & MASK_32
+    X[14] = (rrot32(s4[2], 11) - s3[2] - F(s4[3], s4[0], s3[1])) & MASK_32
+    X[15] = (rrot32(s4[1], 19) - s3[1] - F(s4[2], s4[3], s4[0])) & MASK_32
+
+    return X
 
 #round 2 table - [abcd k s]
 _round2 = [

@@ -463,29 +463,13 @@ def do_single_step_mod(words, extra=True):
     b4 = set_nth_bit(b4, 28, 1)
     b4 = set_nth_bit(b4, 29, 0)
 
-    words_new = list(words)
+    s0 = [a0, b0, c0, d0]
+    s1 = [a1, b1, c1, d1]
+    s2 = [a2, b2, c2, d2]
+    s3 = [a3, b3, c3, d3]
+    s4 = [a4, b4, c4, d4]
 
-    words_new[0] = (util.rrot32(a1, 3) - a0 - md4.F(b0, c0, d0)) & 0xffffffff
-    words_new[1] = (util.rrot32(d1, 7) - d0 - md4.F(a1, b0, c0)) & 0xffffffff
-    words_new[2] = (util.rrot32(c1, 11) - c0 - md4.F(d1, a1, b0)) & 0xffffffff
-    words_new[3] = (util.rrot32(b1, 19) - b0 - md4.F(c1, d1, a1)) & 0xffffffff
-
-    words_new[4] = (util.rrot32(a2, 3) - a1 - md4.F(b1, c1, d1)) & 0xffffffff
-    words_new[5] = (util.rrot32(d2, 7) - d1 - md4.F(a2, b1, c1)) & 0xffffffff
-    words_new[6] = (util.rrot32(c2, 11) - c1 - md4.F(d2, a2, b1)) & 0xffffffff
-    words_new[7] = (util.rrot32(b2, 19) - b1 - md4.F(c2, d2, a2)) & 0xffffffff
-
-    words_new[8] = (util.rrot32(a3, 3) - a2 - md4.F(b2, c2, d2)) & 0xffffffff
-    words_new[9] = (util.rrot32(d3, 7) - d2 - md4.F(a3, b2, c2)) & 0xffffffff
-    words_new[10] = (util.rrot32(c3, 11) - c2 - md4.F(d3, a3, b2)) & 0xffffffff
-    words_new[11] = (util.rrot32(b3, 19) - b2 - md4.F(c3, d3, a3)) & 0xffffffff
-
-    words_new[12] = (util.rrot32(a4, 3) - a3 - md4.F(b3, c3, d3)) & 0xffffffff
-    words_new[13] = (util.rrot32(d4, 7) - d3 - md4.F(a4, b3, c3)) & 0xffffffff
-    words_new[14] = (util.rrot32(c4, 11) - c3 - md4.F(d4, a4, b3)) & 0xffffffff
-    words_new[15] = (util.rrot32(b4, 19) - b3 - md4.F(c4, d4, a4)) & 0xffffffff
-
-    return words_new
+    return md4.invert_round1(s0, [s1, s2, s3, s4])
 
 def do_a5_mod(words, a5i, b):
     s = write_words_be(words)
