@@ -547,10 +547,21 @@ def do_multi_step_mod(words):
     _, _, b4, _ = round1_states[-1]
     round2_states = md4.do_round2(words, round1_states[-1])
     a5, _, _, _ = round2_states[0]
-
     words, round1_states, round2_states = do_d5_mod(words, initial_state, round1_states, round2_states, 18, nth_bit(a5, 18))
+
+    initial_state = md4.INITIAL_STATE
+    round1_states = md4.do_round1(words, md4.INITIAL_STATE)
+    _, _, b4, _ = round1_states[-1]
     words, round1_states, round2_states = do_d5_mod(words, initial_state, round1_states, round2_states, 25, nth_bit(b4, 25))
+
+    initial_state = md4.INITIAL_STATE
+    round1_states = md4.do_round1(words, md4.INITIAL_STATE)
+    _, _, b4, _ = round1_states[-1]
     words, round1_states, round2_states = do_d5_mod(words, initial_state, round1_states, round2_states, 26, nth_bit(b4, 26))
+
+    initial_state = md4.INITIAL_STATE
+    round1_states = md4.do_round1(words, md4.INITIAL_STATE)
+    _, _, b4, _ = round1_states[-1]
     words, round1_states, round2_states = do_d5_mod(words, initial_state, round1_states, round2_states, 28, nth_bit(b4, 28))
 
     s = write_words_be(words)
