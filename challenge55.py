@@ -533,7 +533,7 @@ def do_a5_mod(words, a5i, b):
     a5_new = set_nth_bit(a5, a5i, b)
 
     words_new = list(words)
-    words_new[0] = (rrot32(a5_new, 3) - a4 - md4.G(b4, c4, d4) - 0x5a827999) & 0xffffffff
+    words_new[0] = (rrot32(a5_new, 3) - a4 - md4.G(b4, c4, d4) - md4.ROUND2_K) & 0xffffffff
 
     a1_new = lrot32(a0 + md4.F(b0, c0, d0) + words_new[0], 3)
 
@@ -581,7 +581,7 @@ def do_d5_mod(words, d5i, b):
     d5_new = set_nth_bit(d5, d5i, b)
 
     words_new = list(words)
-    words_new[4] = (rrot32(d5_new, 5) - d4 - md4.G(a5, b4, c4) - 0x5a827999) & 0xffffffff
+    words_new[4] = (rrot32(d5_new, 5) - d4 - md4.G(a5, b4, c4) - md4.ROUND2_K) & 0xffffffff
 
     a2_new = lrot32(a1 + md4.F(b1, c1, d1) + words_new[4], 3)
 
@@ -626,7 +626,7 @@ def do_c5_mod(words, c5i, b):
     c5_new = set_nth_bit(c5, c5i, b)
 
     words_new = list(words)
-    words_new[8] = (rrot32(c5_new, 9) - c4 - md4.G(d5, a5, b4) - 0x5a827999) & 0xffffffff
+    words_new[8] = (rrot32(c5_new, 9) - c4 - md4.G(d5, a5, b4) - md4.ROUND2_K) & 0xffffffff
 
     a3_new = lrot32(a2 + md4.F(b2, c2, d2) + words_new[8], 3)
 
