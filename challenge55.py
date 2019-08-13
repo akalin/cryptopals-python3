@@ -89,16 +89,12 @@ def assert_collidable_round1(s, loose=False):
     words = read_words_be(s)
 
     md4obj = md4.md4()
-    state = list(md4obj._state)
-    a0, b0, c0, d0 = state
-    md4obj._do_round1(words, state, 0, 4)
-    a1, b1, c1, d1 = state
-    md4obj._do_round1(words, state, 4, 8)
-    a2, b2, c2, d2 = state
-    md4obj._do_round1(words, state, 8, 12)
-    a3, b3, c3, d3 = state
-    md4obj._do_round1(words, state, 12, 16)
-    a4, b4, c4, d4 = state
+    states = md4obj._do_round1(words, md4obj._state)
+    a0, b0, c0, d0 = states[0]
+    a1, b1, c1, d1 = states[1]
+    a2, b2, c2, d2 = states[2]
+    a3, b3, c3, d3 = states[3]
+    a4, b4, c4, d4 = states[4]
 
     assert_bit(a1, 6, nth_bit(b0, 6))
 
@@ -220,9 +216,14 @@ def assert_collidable_round2(s, loose=False):
     words = read_words_be(s)
 
     md4obj = md4.md4()
-    state = list(md4obj._state)
-    md4obj._do_round1(words, state)
-    a4, b4, c4, d4 = state
+    states = md4obj._do_round1(words, md4obj._state)
+    a0, b0, c0, d0 = states[0]
+    a1, b1, c1, d1 = states[1]
+    a2, b2, c2, d2 = states[2]
+    a3, b3, c3, d3 = states[3]
+    a4, b4, c4, d4 = states[4]
+    state = list(states[4])
+
     md4obj._do_round2(words, state, 0, 4)
     a5, b5, c5, d5 = state
     md4obj._do_round2(words, state, 4, 8)
@@ -267,8 +268,14 @@ def assert_collidable_round3(s):
     words = read_words_be(s)
 
     md4obj = md4.md4()
-    state = list(md4obj._state)
-    md4obj._do_round1(words, state)
+    states = md4obj._do_round1(words, md4obj._state)
+    a0, b0, c0, d0 = states[0]
+    a1, b1, c1, d1 = states[1]
+    a2, b2, c2, d2 = states[2]
+    a3, b3, c3, d3 = states[3]
+    a4, b4, c4, d4 = states[4]
+    state = list(states[4])
+
     md4obj._do_round2(words, state)
     md4obj._do_round3(words, state, 0, 4)
     _, b9, _, _ = state
@@ -299,16 +306,13 @@ def rrot(x, n):
 
 def do_single_step_mod(words):
     md4obj = md4.md4()
-    state = list(md4obj._state)
-    a0, b0, c0, d0 = state
-    md4obj._do_round1(words, state, 0, 4)
-    a1, b1, c1, d1 = state
-    md4obj._do_round1(words, state, 4, 8)
-    a2, b2, c2, d2 = state
-    md4obj._do_round1(words, state, 8, 12)
-    a3, b3, c3, d3 = state
-    md4obj._do_round1(words, state, 12, 16)
-    a4, b4, c4, d4 = state
+    states = md4obj._do_round1(words, md4obj._state)
+    a0, b0, c0, d0 = states[0]
+    a1, b1, c1, d1 = states[1]
+    a2, b2, c2, d2 = states[2]
+    a3, b3, c3, d3 = states[3]
+    a4, b4, c4, d4 = states[4]
+    state = list(states[4])
 
     a1 = set_nth_bit(a1, 6, nth_bit(b0, 6))
 
@@ -486,16 +490,14 @@ def do_d5_mod(words, a2, d5, i, expected_b, a1, b1, c1, d1, b2, c2, d2, a3, b4, 
 
 def do_multi_step_mod(words):
     md4obj = md4.md4()
-    state = list(md4obj._state)
-    a0, b0, c0, d0 = state
-    md4obj._do_round1(words, state, 0, 4)
-    a1, b1, c1, d1 = state
-    md4obj._do_round1(words, state, 4, 8)
-    a2, b2, c2, d2 = state
-    md4obj._do_round1(words, state, 8, 12)
-    a3, b3, c3, d3 = state
-    md4obj._do_round1(words, state, 12, 16)
-    a4, b4, c4, d4 = state
+    states = md4obj._do_round1(words, md4obj._state)
+    a0, b0, c0, d0 = states[0]
+    a1, b1, c1, d1 = states[1]
+    a2, b2, c2, d2 = states[2]
+    a3, b3, c3, d3 = states[3]
+    a4, b4, c4, d4 = states[4]
+    state = list(states[4])
+
     md4obj._do_round2(words, state, 0, 4)
     a5, b5, c5, d5 = state
 
@@ -506,18 +508,13 @@ def do_multi_step_mod(words):
     a1, a5 = do_a5_mod(words, a1, a5, 31, 1, a0, b0, c0, d0, b1, c1, d1, a2, a4, b4, c4, d4)
 
     md4obj = md4.md4()
-    state = list(md4obj._state)
-    a0, b0, c0, d0 = state
-    md4obj._do_round1(words, state, 0, 4)
-    a1, b1, c1, d1 = state
-    md4obj._do_round1(words, state, 4, 8)
-    a2, b2, c2, d2 = state
-    md4obj._do_round1(words, state, 8, 12)
-    a3, b3, c3, d3 = state
-    md4obj._do_round1(words, state, 12, 16)
-    a4, b4, c4, d4 = state
-    md4obj._do_round2(words, state, 0, 4)
-    a5, b5, c5, d5 = state
+    states = md4obj._do_round1(words, md4obj._state)
+    a0, b0, c0, d0 = states[0]
+    a1, b1, c1, d1 = states[1]
+    a2, b2, c2, d2 = states[2]
+    a3, b3, c3, d3 = states[3]
+    a4, b4, c4, d4 = states[4]
+    state = list(states[4])
 
     a2, d5 = do_d5_mod(words, a2, d5, 18, nth_bit(a5, 18), a1, b1, c1, d1, b2, c2, d2, a3, b4, c4, d4, a5)
     a2, d5 = do_d5_mod(words, a2, d5, 25, nth_bit(b4, 25), a1, b1, c1, d1, b2, c2, d2, a3, b4, c4, d4, a5)
@@ -581,4 +578,4 @@ if __name__ == '__main__':
     words = [0] * 16
     tweak_and_test(words, True)
 
-    find_collision(10000)
+#    find_collision(10000)
