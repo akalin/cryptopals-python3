@@ -2,6 +2,7 @@ import binascii
 import md4
 import struct
 import util
+from util import lrot32, rrot32
 
 def md4_hexdigest(m, msglen=None):
     md4obj = md4.md4()
@@ -322,6 +323,46 @@ def test_collision():
     assert_collision(collision_M1_str, collision_state1_str, collision_hash1_str)
     assert_collision(collision_M2_str, collision_state2_str, collision_hash2_str)
 
+def invert_round1(initial_state, states):
+    X = [0] * 16
+
+    s0 = initial_state
+    s1, s2, s3, s4 = states
+
+    MASK_32 = 0xffffffff
+    F = md4.F
+
+    X[ 0] = (rrot32(s1[0],  3) - s0[0] - F(s0[1], s0[2], s0[3])) & MASK_32
+    X[ 1] = (rrot32(s1[3],  7) - s0[3] - F(s1[0], s0[1], s0[2])) & MASK_32
+    X[ 2] = (rrot32(s1[2], 11) - s0[2] - F(s1[3], s1[0], s0[1])) & MASK_32
+    X[ 3] = (rrot32(s1[1], 19) - s0[1] - F(s1[2], s1[3], s1[0])) & MASK_32
+
+    X[ 4] = (rrot32(s2[0],  3) - s1[0] - F(s1[1], s1[2], s1[3])) & MASK_32
+    X[ 5] = (rrot32(s2[3],  7) - s1[3] - F(s2[0], s1[1], s1[2])) & MASK_32
+    X[ 6] = (rrot32(s2[2], 11) - s1[2] - F(s2[3], s2[0], s1[1])) & MASK_32
+    X[ 7] = (rrot32(s2[1], 19) - s1[1] - F(s2[2], s2[3], s2[0])) & MASK_32
+
+    X[ 8] = (rrot32(s3[0],  3) - s2[0] - F(s2[1], s2[2], s2[3])) & MASK_32
+    X[ 9] = (rrot32(s3[3],  7) - s2[3] - F(s3[0], s2[1], s2[2])) & MASK_32
+    X[10] = (rrot32(s3[2], 11) - s2[2] - F(s3[3], s3[0], s2[1])) & MASK_32
+    X[11] = (rrot32(s3[1], 19) - s2[1] - F(s3[2], s3[3], s3[0])) & MASK_32
+
+    X[12] = (rrot32(s4[0],  3) - s3[0] - F(s3[1], s3[2], s3[3])) & MASK_32
+    X[13] = (rrot32(s4[3],  7) - s3[3] - F(s4[0], s3[1], s3[2])) & MASK_32
+    X[14] = (rrot32(s4[2], 11) - s3[2] - F(s4[3], s4[0], s3[1])) & MASK_32
+    X[15] = (rrot32(s4[1], 19) - s3[1] - F(s4[2], s4[3], s4[0])) & MASK_32
+
+    return X
+
+def test_invert_round1():
+    for i in range(1000):
+        b = util.randbytes(64)
+        X = list(struct.unpack('>16I', b))
+        state = md4.do_round1(X, md4.INITIAL_STATE)
+        X2 = invert_round1(md4.INITIAL_STATE, state)
+        if X != X2:
+            raise Exception('expected {}, got {}'.format(X, X2))
+
 def set_nth_bit(x, n, b):
     return (x & ~(1 << n)) | (b << n)
 
@@ -469,7 +510,7 @@ def do_single_step_mod(words, extra=True):
     s3 = [a3, b3, c3, d3]
     s4 = [a4, b4, c4, d4]
 
-    return md4.invert_round1(s0, [s1, s2, s3, s4])
+    return invert_round1(s0, [s1, s2, s3, s4])
 
 def do_a5_mod(words, a5i, b):
     s = write_words_be(words)
@@ -492,14 +533,14 @@ def do_a5_mod(words, a5i, b):
     a5_new = set_nth_bit(a5, a5i, b)
 
     words_new = list(words)
-    words_new[0] = (util.rrot32(a5_new, 3) - a4 - md4.G(b4, c4, d4) - 0x5a827999) & 0xffffffff
+    words_new[0] = (rrot32(a5_new, 3) - a4 - md4.G(b4, c4, d4) - 0x5a827999) & 0xffffffff
 
-    a1_new = util.lrot32(a0 + md4.F(b0, c0, d0) + words_new[0], 3)
+    a1_new = lrot32(a0 + md4.F(b0, c0, d0) + words_new[0], 3)
 
-    words_new[1] = (util.rrot32(d1, 7) - d0 - md4.F(a1_new, b0, c0)) & 0xffffffff
-    words_new[2] = (util.rrot32(c1, 11) - c0 - md4.F(d1, a1_new, b0)) & 0xffffffff
-    words_new[3] = (util.rrot32(b1, 19) - b0 - md4.F(c1, d1, a1_new)) & 0xffffffff
-    words_new[4] = (util.rrot32(a2, 3) - a1_new - md4.F(b1, c1, d1)) & 0xffffffff
+    words_new[1] = (rrot32(d1, 7) - d0 - md4.F(a1_new, b0, c0)) & 0xffffffff
+    words_new[2] = (rrot32(c1, 11) - c0 - md4.F(d1, a1_new, b0)) & 0xffffffff
+    words_new[3] = (rrot32(b1, 19) - b0 - md4.F(c1, d1, a1_new)) & 0xffffffff
+    words_new[4] = (rrot32(a2, 3) - a1_new - md4.F(b1, c1, d1)) & 0xffffffff
 
     s = write_words_be(words_new)
     assert_collidable_round1(s, extra=True)
@@ -540,14 +581,14 @@ def do_d5_mod(words, d5i, b):
     d5_new = set_nth_bit(d5, d5i, b)
 
     words_new = list(words)
-    words_new[4] = (util.rrot32(d5_new, 5) - d4 - md4.G(a5, b4, c4) - 0x5a827999) & 0xffffffff
+    words_new[4] = (rrot32(d5_new, 5) - d4 - md4.G(a5, b4, c4) - 0x5a827999) & 0xffffffff
 
-    a2_new = util.lrot32(a1 + md4.F(b1, c1, d1) + words_new[4], 3)
+    a2_new = lrot32(a1 + md4.F(b1, c1, d1) + words_new[4], 3)
 
-    words_new[5] = (util.rrot32(d2, 7) - d1 - md4.F(a2_new, b1, c1)) & 0xffffffff
-    words_new[6] = (util.rrot32(c2, 11) - c1 - md4.F(d2, a2_new, b1)) & 0xffffffff
-    words_new[7] = (util.rrot32(b2, 19) - b1 - md4.F(c2, d2, a2_new)) & 0xffffffff
-    words_new[8] = (util.rrot32(a3, 3) - a2_new - md4.F(b2, c2, d2)) & 0xffffffff
+    words_new[5] = (rrot32(d2, 7) - d1 - md4.F(a2_new, b1, c1)) & 0xffffffff
+    words_new[6] = (rrot32(c2, 11) - c1 - md4.F(d2, a2_new, b1)) & 0xffffffff
+    words_new[7] = (rrot32(b2, 19) - b1 - md4.F(c2, d2, a2_new)) & 0xffffffff
+    words_new[8] = (rrot32(a3, 3) - a2_new - md4.F(b2, c2, d2)) & 0xffffffff
 
     words_new = do_single_step_mod(words_new)
 
@@ -585,14 +626,14 @@ def do_c5_mod(words, c5i, b):
     c5_new = set_nth_bit(c5, c5i, b)
 
     words_new = list(words)
-    words_new[8] = (util.rrot32(c5_new, 9) - c4 - md4.G(d5, a5, b4) - 0x5a827999) & 0xffffffff
+    words_new[8] = (rrot32(c5_new, 9) - c4 - md4.G(d5, a5, b4) - 0x5a827999) & 0xffffffff
 
-    a3_new = util.lrot32(a2 + md4.F(b2, c2, d2) + words_new[8], 3)
+    a3_new = lrot32(a2 + md4.F(b2, c2, d2) + words_new[8], 3)
 
-    words_new[9] = (util.rrot32(d3, 7) - d2 - md4.F(a3_new, b2, c2)) & 0xffffffff
-    words_new[10] = (util.rrot32(c3, 11) - c2 - md4.F(d3, a3_new, b2)) & 0xffffffff
-    words_new[11] = (util.rrot32(b3, 19) - b2 - md4.F(c3, d3, a3_new)) & 0xffffffff
-    words_new[12] = (util.rrot32(a4, 3) - a3_new - md4.F(b3, c3, d3)) & 0xffffffff
+    words_new[9] = (rrot32(d3, 7) - d2 - md4.F(a3_new, b2, c2)) & 0xffffffff
+    words_new[10] = (rrot32(c3, 11) - c2 - md4.F(d3, a3_new, b2)) & 0xffffffff
+    words_new[11] = (rrot32(b3, 19) - b2 - md4.F(c3, d3, a3_new)) & 0xffffffff
+    words_new[12] = (rrot32(a4, 3) - a3_new - md4.F(b3, c3, d3)) & 0xffffffff
 
 #    words_new = do_single_step_mod(words_new, extra=False)
 
@@ -703,6 +744,7 @@ def find_collision(n):
 if __name__ == '__main__':
     test_md4()
     test_collision()
+    test_invert_round1()
 
     words = [0] * 16
     tweak_and_test(words, True)
