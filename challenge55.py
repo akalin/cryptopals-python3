@@ -521,20 +521,27 @@ def dump_s(s):
 def flip_nth_bit(x, n):
     return set_nth_bit(x, n, 1 - nth_bit(x, n))
 
+def assert_word_eq(expected, actual):
+    if actual != expected:
+        raise Exception('expected {:02x}, got {:02x}'.format(expected, actual))
+
 def flip_a5_bit(X, a5i):
     s0 = md4.INITIAL_STATE
     [s1, s2, s3, s4] = md4.do_round1(X, s0)
     [s5, s6, s7, s8] = md4.do_round2(X, s4)
 
     a5, _, _, _ = s5
-    a5_new = flip_nth_bit(a5, a5i)
+    delta = 1 if nth_bit(a5, a5i) == 0 else -1
 
     X_new = list(X)
-    X_new[0] = (rrot32(a5_new, 3) - s4[0] - md4.G(s4[1], s4[2], s4[3]) - md4.ROUND2_K) & 0xffffffff
+    X_new[0] = (X[0] + delta * (1 << (a5i - 3))) & 0xffffffff
+
+    a5_new = flip_nth_bit(a5, a5i)
+    expected_X_new_0 = (rrot32(a5_new, 3) - s4[0] - md4.G(s4[1], s4[2], s4[3]) - md4.ROUND2_K) & 0xffffffff
+    assert_word_eq(expected_X_new_0, X_new[0])
 
     a5_new2 = lrot32((s4[0] + md4.G(s4[1], s4[2], s4[3]) + X_new[0] + md4.ROUND2_K), 3)
-    if a5_new != a5_new2:
-        raise Exception('expected {:02x}, got {:02x}'.format(a5_new, a5_new2))
+    assert_word_eq(a5_new2, a5_new)
 
     [[a1_new, _, _, _], _, _, _] = md4.do_round1(X_new, s0)
 
@@ -562,8 +569,7 @@ def flip_a5_bit(X, a5i):
     round2_states_new = md4.do_round2(X_new, round1_states_new[-1])
     expected_round1_states = [round2_states_new[0], s6, s7, s8]
     a5_new2, _, _, _ = round2_states_new[0]
-    if a5_new2 != a5_new:
-        raise Exception('expected {:02x}, got {:02x}'.format(a5_new, a5_new2))
+    assert_word_eq(a5_new2, a5_new)
 
     return X_new
 
