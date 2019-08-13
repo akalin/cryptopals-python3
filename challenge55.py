@@ -503,6 +503,8 @@ def do_d5_mod(words, d5i, b):
     if nth_bit(d5, d5i) == b:
         return words
 
+    a0, b0, c0, d0 = md4.INITIAL_STATE
+
     a1, b1, c1, d1 = round1_states[0]
     a2, b2, c2, d2 = round1_states[1]
     a3, b3, c3, d3 = round1_states[2]
@@ -522,6 +524,8 @@ def do_d5_mod(words, d5i, b):
     words_new[7] = (rrot(b2, 19) - b1 - md4.F(c2, d2, a2_new)) % 2**32
     words_new[8] = (rrot(a3, 3) - a2_new - md4.F(b2, c2, d2)) % 2**32
 
+    words_new = do_single_step_mod(words_new)
+
     s = write_words_be(words_new)
     assert_collidable_round1(s)
     assert_collidable_round2_a5(s)
@@ -530,13 +534,9 @@ def do_d5_mod(words, d5i, b):
     expected_round1_states = list(round1_states)
     expected_round1_states[1] = list(expected_round1_states[1])
     expected_round1_states[1][0] = a2_new
-    if round1_states_new != expected_round1_states:
-        raise Exception('expected {}, got {}'.format(expected_round1_states, round1_states_new))
 
     round2_states_new = md4.do_round2(words_new, round1_states_new[-1])
     _, _, _, d5_new2 = round2_states_new[0]
-    if d5_new2 != d5_new:
-        raise Exception('expected {}, got {}'.format(d5_new, d5_new2))
 
     return words_new
 
