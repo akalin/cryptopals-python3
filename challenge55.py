@@ -478,9 +478,14 @@ def do_a5_mod(words, a5i, b):
     assert_collidable_round1(s)
 
     initial_state = md4.INITIAL_STATE
-    round1_states = md4.do_round1(words, initial_state)
-    round2_states = md4.do_round2(words, round1_states[-1])
-    a5, b5, c5, d5 = round2_states[0]
+    round1_states_new = md4.do_round1(words_new, initial_state)
+    if round1_states_new[0][1:] != round1_states[0][1:]:
+        raise Exception('expected {}, got {}'.format(round1_states[0][1:], round1_states_new[0][1:]))
+    if round1_states_new[1:] != round1_states[1:]:
+        raise Exception('expected {}, got {}'.format(round1_states[1:], round1_states_new[1:]))
+
+    round2_states_new = md4.do_round2(words_new, round1_states_new[-1])
+    a5, b5, c5, d5 = round2_states_new[0]
 
     assert_bit(a5, a5i, b)
 
@@ -519,14 +524,14 @@ def do_d5_mod(words, d5i, b):
     words_new[7] = (rrot(b2, 19) - b1 - md4.F(c2, d2, a2_new)) % 2**32
     words_new[8] = (rrot(a3, 3) - a2_new - md4.F(b2, c2, d2)) % 2**32
 
-    s = write_words_be(words)
+    s = write_words_be(words_new)
     assert_collidable_round1(s)
     assert_collidable_round2_a5(s)
 
     initial_state = md4.INITIAL_STATE
-    round1_states = md4.do_round1(words, md4.INITIAL_STATE)
-    round2_states = md4.do_round2(words, round1_states[-1])
-    a5, b5, c5, d5 = round2_states[0]
+    round1_states_new = md4.do_round1(words_new, md4.INITIAL_STATE)
+    round2_states_new = md4.do_round2(words_new, round1_states_new[-1])
+    a5, b5, c5, d5 = round2_states_new[0]
 
     assert_bit(d5, d5i, b)
 
