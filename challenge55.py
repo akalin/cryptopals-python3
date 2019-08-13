@@ -85,7 +85,7 @@ def assert_bit(x, n, expected_b):
     if b != expected_b:
         raise Exception('expected {}, got {}'.format(expected_b, b))
 
-def assert_collidable_round1(s, loose=False):
+def assert_collidable_round1(s):
     words = read_words_be(s)
 
     a0, b0, c0, d0 = md4.INITIAL_STATE
@@ -113,12 +113,8 @@ def assert_collidable_round1(s, loose=False):
 
     assert_bit(a2, 7, 1)
     assert_bit(a2, 10, 1)
-    if not loose:
-        assert_bit(a2, 25, 0)
+    assert_bit(a2, 25, 0)
     assert_bit(a2, 13, nth_bit(b1, 13))
-
-    if loose:
-        return
 
     assert_bit(d2, 13, 0)
     assert_bit(d2, 18, nth_bit(a2, 18))
@@ -164,8 +160,7 @@ def assert_collidable_round1(s, loose=False):
     assert_bit(d3, 21, 1)
     assert_bit(d3, 22, 0)
     assert_bit(d3, 25, 1)
-    if not loose:
-        assert_bit(d3, 29, nth_bit(a2, 29))
+    assert_bit(d3, 29, nth_bit(a2, 29))
 
     assert_bit(c3, 16, 1)
     assert_bit(c3, 19, 0)
