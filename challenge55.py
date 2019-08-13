@@ -548,8 +548,7 @@ def flip_a5_bit(X, a5i):
     s1_new = [a1_new, s1[1], s1[2], s1[3]]
     Y = invert_round1(s0, [s1_new, s2, s3, s4])
 
-    if X_new[0] != Y[0]:
-        raise Exception('expected {:02x}, got {:02x}'.format(X_new[0], Y[0]))
+    assert_word_eq(X_new[0], Y[0])
 
     X_new[1] = Y[1]
     X_new[2] = Y[2]
@@ -557,8 +556,7 @@ def flip_a5_bit(X, a5i):
     X_new[4] = Y[4]
 
     for i in range(5, 16):
-        if X_new[i] != Y[i]:
-            raise Exception('expected Y[{}]={:02x}, got {:02x}'.format(i, X_new[i], Y[i]))
+        assert_word_eq(X_new[i], Y[i])
 
     round1_states_new = md4.do_round1(X_new, s0)
     expected_round1_states = [s1_new, s2, s3, s4]
@@ -597,6 +595,62 @@ def do_a5_mod(words, a5i, b):
 
     return words_new
 
+def flip_d5_bit(X, d5i):
+    s0 = md4.INITIAL_STATE
+    [s1, s2, s3, s4] = md4.do_round1(X, s0)
+    [s5, s6, s7, s8] = md4.do_round2(X, s4)
+
+    _, _, _, d5 = s5
+    delta = 1 if nth_bit(d5, d5i) == 0 else -1
+
+    X_new = list(X)
+    X_new[4] = (X[4] + delta * (1 << (d5i - 5))) & 0xffffffff
+
+    d5_new = flip_nth_bit(d5, d5i)
+    expected_X_new_4 = (rrot32(d5_new, 5) - s4[3] - md4.G(s5[0], s4[1], s4[2]) - md4.ROUND2_K) & 0xffffffff
+    assert_word_eq(expected_X_new_4, X_new[4])
+
+    d5_new2 = lrot32((s4[3] + md4.G(s5[0], s4[1], s4[2]) + X_new[4] + md4.ROUND2_K), 5)
+    assert_word_eq(d5_new2, d5_new)
+
+    [_, [a2_new, _, _, _], _, _] = md4.do_round1(X_new, s0)
+
+    s2_new = [a2_new, s2[1], s2[2], s2[3]]
+    Y = invert_round1(s0, [s1, s2_new, s3, s4])
+
+    for i in range(0, 4):
+        assert_word_eq(X_new[i], Y[i])
+
+    if X_new[4] != Y[4]:
+        raise Exception('expected {:02x}, got {:02x}'.format(X_new[4], Y[4]))
+
+    X_new[5] = Y[5]
+    X_new[6] = Y[6]
+    X_new[7] = Y[7]
+    X_new[8] = Y[8]
+
+    for i in range(9, 16):
+        assert_word_eq(X_new[i], Y[i])
+
+    round1_states_new = md4.do_round1(X_new, s0)
+    expected_round1_states = [s1, s2_new, s3, s4]
+    for i in range(4):
+        if round1_states_new[i] != expected_round1_states[i]:
+            raise Exception('expected s[{}]={}, got {}'.format(i, dump_s(expected_round1_states[i]), dump_s(round1_states_new[i])))
+
+    round2_states_new = md4.do_round2(X_new, round1_states_new[-1])
+    expected_round1_states = [round2_states_new[0], s6, s7, s8]
+    _, _, _, d5_new2 = round2_states_new[0]
+    assert_word_eq(d5_new2, d5_new)
+
+    return X_new
+
+def test_flip_d5_bit():
+    for i in range(1000):
+        X = randX()
+        for d5i in [18, 25, 26, 28]:
+            flip_d5_bit(X, d5i)
+
 def do_d5_mod(words, d5i, b):
     s = write_words_be(words)
     assert_collidable_round1(s, extra=True)
@@ -609,35 +663,12 @@ def do_d5_mod(words, d5i, b):
     if nth_bit(d5, d5i) == b:
         return words
 
-    a0, b0, c0, d0 = md4.INITIAL_STATE
-
-    a1, b1, c1, d1 = round1_states[0]
-    a2, b2, c2, d2 = round1_states[1]
-    a3, b3, c3, d3 = round1_states[2]
-    a4, b4, c4, d4 = round1_states[3]
-
-    d5_new = set_nth_bit(d5, d5i, b)
-
-    words_new = list(words)
-    words_new[4] = (rrot32(d5_new, 5) - d4 - md4.G(a5, b4, c4) - md4.ROUND2_K) & 0xffffffff
-
-    a2_new = lrot32(a1 + md4.F(b1, c1, d1) + words_new[4], 3)
-
-    words_new[5] = (rrot32(d2, 7) - d1 - md4.F(a2_new, b1, c1)) & 0xffffffff
-    words_new[6] = (rrot32(c2, 11) - c1 - md4.F(d2, a2_new, b1)) & 0xffffffff
-    words_new[7] = (rrot32(b2, 19) - b1 - md4.F(c2, d2, a2_new)) & 0xffffffff
-    words_new[8] = (rrot32(a3, 3) - a2_new - md4.F(b2, c2, d2)) & 0xffffffff
-
+    words_new = flip_d5_bit(words, d5i)
     words_new = do_single_step_mod(words_new)
 
     s = write_words_be(words_new)
     assert_collidable_round1(s, extra=True)
     assert_collidable_round2_a5(s)
-
-    round1_states_new = md4.do_round1(words_new)
-    round2_states_new = md4.do_round2(words_new, round1_states_new[-1])
-    _, _, _, d5_new2 = round2_states_new[0]
-    assert_bit(d5_new2, d5i, b)
 
     return words_new
 
@@ -782,6 +813,7 @@ if __name__ == '__main__':
     test_collision()
     test_invert_round1()
     test_flip_a5_bit()
+    test_flip_d5_bit()
 
     words = [0] * 16
     tweak_and_test(words, True)
