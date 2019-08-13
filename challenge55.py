@@ -325,9 +325,6 @@ def test_collision():
 def set_nth_bit(x, n, b):
     return (x & ~(1 << n)) | (b << n)
 
-def rrot(x, n):
-    return (x >> n) | ((x << (32 - n)) & 0xffffffff)
-
 def do_single_step_mod(words, extra=True):
     a0, b0, c0, d0 = md4.INITIAL_STATE
     states = md4.do_round1(words)
@@ -468,30 +465,27 @@ def do_single_step_mod(words, extra=True):
 
     words_new = list(words)
 
-    words_new[0] = (rrot(a1, 3) - a0 - md4.F(b0, c0, d0)) % 2**32
-    words_new[1] = (rrot(d1, 7) - d0 - md4.F(a1, b0, c0)) % 2**32
-    words_new[2] = (rrot(c1, 11) - c0 - md4.F(d1, a1, b0)) % 2**32
-    words_new[3] = (rrot(b1, 19) - b0 - md4.F(c1, d1, a1)) % 2**32
+    words_new[0] = (util.rrot32(a1, 3) - a0 - md4.F(b0, c0, d0)) & 0xffffffff
+    words_new[1] = (util.rrot32(d1, 7) - d0 - md4.F(a1, b0, c0)) & 0xffffffff
+    words_new[2] = (util.rrot32(c1, 11) - c0 - md4.F(d1, a1, b0)) & 0xffffffff
+    words_new[3] = (util.rrot32(b1, 19) - b0 - md4.F(c1, d1, a1)) & 0xffffffff
 
-    words_new[4] = (rrot(a2, 3) - a1 - md4.F(b1, c1, d1)) % 2**32
-    words_new[5] = (rrot(d2, 7) - d1 - md4.F(a2, b1, c1)) % 2**32
-    words_new[6] = (rrot(c2, 11) - c1 - md4.F(d2, a2, b1)) % 2**32
-    words_new[7] = (rrot(b2, 19) - b1 - md4.F(c2, d2, a2)) % 2**32
+    words_new[4] = (util.rrot32(a2, 3) - a1 - md4.F(b1, c1, d1)) & 0xffffffff
+    words_new[5] = (util.rrot32(d2, 7) - d1 - md4.F(a2, b1, c1)) & 0xffffffff
+    words_new[6] = (util.rrot32(c2, 11) - c1 - md4.F(d2, a2, b1)) & 0xffffffff
+    words_new[7] = (util.rrot32(b2, 19) - b1 - md4.F(c2, d2, a2)) & 0xffffffff
 
-    words_new[8] = (rrot(a3, 3) - a2 - md4.F(b2, c2, d2)) % 2**32
-    words_new[9] = (rrot(d3, 7) - d2 - md4.F(a3, b2, c2)) % 2**32
-    words_new[10] = (rrot(c3, 11) - c2 - md4.F(d3, a3, b2)) % 2**32
-    words_new[11] = (rrot(b3, 19) - b2 - md4.F(c3, d3, a3)) % 2**32
+    words_new[8] = (util.rrot32(a3, 3) - a2 - md4.F(b2, c2, d2)) & 0xffffffff
+    words_new[9] = (util.rrot32(d3, 7) - d2 - md4.F(a3, b2, c2)) & 0xffffffff
+    words_new[10] = (util.rrot32(c3, 11) - c2 - md4.F(d3, a3, b2)) & 0xffffffff
+    words_new[11] = (util.rrot32(b3, 19) - b2 - md4.F(c3, d3, a3)) & 0xffffffff
 
-    words_new[12] = (rrot(a4, 3) - a3 - md4.F(b3, c3, d3)) % 2**32
-    words_new[13] = (rrot(d4, 7) - d3 - md4.F(a4, b3, c3)) % 2**32
-    words_new[14] = (rrot(c4, 11) - c3 - md4.F(d4, a4, b3)) % 2**32
-    words_new[15] = (rrot(b4, 19) - b3 - md4.F(c4, d4, a4)) % 2**32
+    words_new[12] = (util.rrot32(a4, 3) - a3 - md4.F(b3, c3, d3)) & 0xffffffff
+    words_new[13] = (util.rrot32(d4, 7) - d3 - md4.F(a4, b3, c3)) & 0xffffffff
+    words_new[14] = (util.rrot32(c4, 11) - c3 - md4.F(d4, a4, b3)) & 0xffffffff
+    words_new[15] = (util.rrot32(b4, 19) - b3 - md4.F(c4, d4, a4)) & 0xffffffff
 
     return words_new
-
-def lrot(x, n):
-    return rrot(x, 32 - n)
 
 def do_a5_mod(words, a5i, b):
     s = write_words_be(words)
@@ -514,14 +508,14 @@ def do_a5_mod(words, a5i, b):
     a5_new = set_nth_bit(a5, a5i, b)
 
     words_new = list(words)
-    words_new[0] = (rrot(a5_new, 3) - a4 - md4.G(b4, c4, d4) - 0x5a827999) % 2**32
+    words_new[0] = (util.rrot32(a5_new, 3) - a4 - md4.G(b4, c4, d4) - 0x5a827999) & 0xffffffff
 
-    a1_new = lrot((a0 + md4.F(b0, c0, d0) + words_new[0]) % 2**32, 3)
+    a1_new = util.lrot32(a0 + md4.F(b0, c0, d0) + words_new[0], 3)
 
-    words_new[1] = (rrot(d1, 7) - d0 - md4.F(a1_new, b0, c0)) % 2**32
-    words_new[2] = (rrot(c1, 11) - c0 - md4.F(d1, a1_new, b0)) % 2**32
-    words_new[3] = (rrot(b1, 19) - b0 - md4.F(c1, d1, a1_new)) % 2**32
-    words_new[4] = (rrot(a2, 3) - a1_new - md4.F(b1, c1, d1)) % 2**32
+    words_new[1] = (util.rrot32(d1, 7) - d0 - md4.F(a1_new, b0, c0)) & 0xffffffff
+    words_new[2] = (util.rrot32(c1, 11) - c0 - md4.F(d1, a1_new, b0)) & 0xffffffff
+    words_new[3] = (util.rrot32(b1, 19) - b0 - md4.F(c1, d1, a1_new)) & 0xffffffff
+    words_new[4] = (util.rrot32(a2, 3) - a1_new - md4.F(b1, c1, d1)) & 0xffffffff
 
     s = write_words_be(words_new)
     assert_collidable_round1(s, extra=True)
@@ -562,14 +556,14 @@ def do_d5_mod(words, d5i, b):
     d5_new = set_nth_bit(d5, d5i, b)
 
     words_new = list(words)
-    words_new[4] = (rrot(d5_new, 5) - d4 - md4.G(a5, b4, c4) - 0x5a827999) % 2**32
+    words_new[4] = (util.rrot32(d5_new, 5) - d4 - md4.G(a5, b4, c4) - 0x5a827999) & 0xffffffff
 
-    a2_new = lrot((a1 + md4.F(b1, c1, d1) + words_new[4]) % 2**32, 3)
+    a2_new = util.lrot32(a1 + md4.F(b1, c1, d1) + words_new[4], 3)
 
-    words_new[5] = (rrot(d2, 7) - d1 - md4.F(a2_new, b1, c1)) % 2**32
-    words_new[6] = (rrot(c2, 11) - c1 - md4.F(d2, a2_new, b1)) % 2**32
-    words_new[7] = (rrot(b2, 19) - b1 - md4.F(c2, d2, a2_new)) % 2**32
-    words_new[8] = (rrot(a3, 3) - a2_new - md4.F(b2, c2, d2)) % 2**32
+    words_new[5] = (util.rrot32(d2, 7) - d1 - md4.F(a2_new, b1, c1)) & 0xffffffff
+    words_new[6] = (util.rrot32(c2, 11) - c1 - md4.F(d2, a2_new, b1)) & 0xffffffff
+    words_new[7] = (util.rrot32(b2, 19) - b1 - md4.F(c2, d2, a2_new)) & 0xffffffff
+    words_new[8] = (util.rrot32(a3, 3) - a2_new - md4.F(b2, c2, d2)) & 0xffffffff
 
     words_new = do_single_step_mod(words_new)
 
@@ -607,14 +601,14 @@ def do_c5_mod(words, c5i, b):
     c5_new = set_nth_bit(c5, c5i, b)
 
     words_new = list(words)
-    words_new[8] = (rrot(c5_new, 9) - c4 - md4.G(d5, a5, b4) - 0x5a827999) % 2**32
+    words_new[8] = (util.rrot32(c5_new, 9) - c4 - md4.G(d5, a5, b4) - 0x5a827999) & 0xffffffff
 
-    a3_new = lrot((a2 + md4.F(b2, c2, d2) + words_new[8]) % 2**32, 3)
+    a3_new = util.lrot32(a2 + md4.F(b2, c2, d2) + words_new[8], 3)
 
-    words_new[9] = (rrot(d3, 7) - d2 - md4.F(a3_new, b2, c2)) % 2**32
-    words_new[10] = (rrot(c3, 11) - c2 - md4.F(d3, a3_new, b2)) % 2**32
-    words_new[11] = (rrot(b3, 19) - b2 - md4.F(c3, d3, a3_new)) % 2**32
-    words_new[12] = (rrot(a4, 3) - a3_new - md4.F(b3, c3, d3)) % 2**32
+    words_new[9] = (util.rrot32(d3, 7) - d2 - md4.F(a3_new, b2, c2)) & 0xffffffff
+    words_new[10] = (util.rrot32(c3, 11) - c2 - md4.F(d3, a3_new, b2)) & 0xffffffff
+    words_new[11] = (util.rrot32(b3, 19) - b2 - md4.F(c3, d3, a3_new)) & 0xffffffff
+    words_new[12] = (util.rrot32(a4, 3) - a3_new - md4.F(b3, c3, d3)) & 0xffffffff
 
 #    words_new = do_single_step_mod(words_new, extra=False)
 

@@ -5,6 +5,7 @@
 from binascii import hexlify
 import struct
 from warnings import warn
+from util import lrot32
 #local
 __all__ = [ "md4" ]
 #=========================================================================
@@ -51,6 +52,16 @@ _round1 = [
     [1,2,3,0, 15,19],
 ]
 
+def do_round1(X, state=INITIAL_STATE):
+    state = list(state)
+    states = []
+    #round 1 - F function - (x&y)|(~x & z)
+    for i, (a,b,c,d,k,s) in enumerate(_round1):
+        state[a] = lrot32((state[a] + F(state[b],state[c],state[d]) + X[k]), s)
+        if i % 4 == 3:
+            states.append(list(state))
+    return states
+
 #round 2 table - [abcd k s]
 _round2 = [
     [0,1,2,3, 0,3],
@@ -96,17 +107,6 @@ _round3 = [
     [2,3,0,1, 7,11],
     [1,2,3,0, 15,15],
 ]
-
-def do_round1(X, state=INITIAL_STATE):
-    state = list(state)
-    states = []
-    #round 1 - F function - (x&y)|(~x & z)
-    for i, (a,b,c,d,k,s) in enumerate(_round1):
-        t = (state[a] + F(state[b],state[c],state[d]) + X[k]) & MASK_32
-        state[a] = ((t<<s) & MASK_32) + (t>>(32-s))
-        if i % 4 == 3:
-            states.append(list(state))
-    return states
 
 def do_round2(X, state):
     state = list(state)
