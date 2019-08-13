@@ -486,23 +486,28 @@ def do_a5_mod(words, a5i, b):
 
     return words_new
 
-def do_d5_mod(words, initial_state, round1_states, round2_states, d5i, b):
+def do_d5_mod(words, d5i, b):
     s = write_words_be(words)
     assert_collidable_round1(s)
     assert_collidable_round2_a5(s)
+
+    initial_state = md4.INITIAL_STATE
+    round1_states = md4.do_round1(words, md4.INITIAL_STATE)
+    round2_states = md4.do_round2(words, round1_states[-1])
+    a5, b5, c5, d5 = round2_states[0]
+
+    if nth_bit(d5, d5i) == b:
+        return words
 
     a0, b0, c0, d0 = md4.INITIAL_STATE
     a1, b1, c1, d1 = round1_states[0]
     a2, b2, c2, d2 = round1_states[1]
     a3, b3, c3, d3 = round1_states[2]
     a4, b4, c4, d4 = round1_states[3]
-    a5, b5, c5, d5 = round2_states[0]
+
     a6, b6, c6, d6 = round2_states[1]
 
-    if nth_bit(d5, d5i) == b:
-        return words, round1_states, round2_states
-
-    d5_new = set_nth_bit(d5, i, expected_b)
+    d5_new = set_nth_bit(d5, i, b)
 
     words_new = list(words)
     words_new[4] = (rrot(d5_new, 5) - d4 - md4.G(a5, b4, c4) - 0x5a827999) % 2**32
@@ -514,19 +519,18 @@ def do_d5_mod(words, initial_state, round1_states, round2_states, d5i, b):
     words_new[7] = (rrot(b2, 19) - b1 - md4.F(c2, d2, a2_new)) % 2**32
     words_new[8] = (rrot(a3, 3) - a2_new - md4.F(b2, c2, d2)) % 2**32
 
-    round1_states_new = list(round1_states)
-    round1_states_new[1] = list(round1_states_new[1])
-    round1_states_new[1][0] = a2_new
-
-    round2_states_new = list(round2_states)
-    round2_states_new[0] = list(round2_states_new[0])
-    round2_states_new[0][3] = d5_new
-
     s = write_words_be(words)
     assert_collidable_round1(s)
     assert_collidable_round2_a5(s)
 
-    return words_new, round1_states_new, round2_states_new
+    initial_state = md4.INITIAL_STATE
+    round1_states = md4.do_round1(words, md4.INITIAL_STATE)
+    round2_states = md4.do_round2(words, round1_states[-1])
+    a5, b5, c5, d5 = round2_states[0]
+
+    assert_bit(d5, d5i, b)
+
+    return words_new
 
 def do_multi_step_mod(words):
     initial_state = md4.INITIAL_STATE
@@ -547,23 +551,12 @@ def do_multi_step_mod(words):
     round1_states = md4.do_round1(words, md4.INITIAL_STATE)
     _, _, b4, _ = round1_states[-1]
     round2_states = md4.do_round2(words, round1_states[-1])
-    a5, _, _, _ = round2_states[0]
-    words, round1_states, round2_states = do_d5_mod(words, initial_state, round1_states, round2_states, 18, nth_bit(a5, 18))
+    a5, b5, c5, d5 = round2_states[0]
 
-    initial_state = md4.INITIAL_STATE
-    round1_states = md4.do_round1(words, md4.INITIAL_STATE)
-    _, _, b4, _ = round1_states[-1]
-    words, round1_states, round2_states = do_d5_mod(words, initial_state, round1_states, round2_states, 25, nth_bit(b4, 25))
-
-    initial_state = md4.INITIAL_STATE
-    round1_states = md4.do_round1(words, md4.INITIAL_STATE)
-    _, _, b4, _ = round1_states[-1]
-    words, round1_states, round2_states = do_d5_mod(words, initial_state, round1_states, round2_states, 26, nth_bit(b4, 26))
-
-    initial_state = md4.INITIAL_STATE
-    round1_states = md4.do_round1(words, md4.INITIAL_STATE)
-    _, _, b4, _ = round1_states[-1]
-    words, round1_states, round2_states = do_d5_mod(words, initial_state, round1_states, round2_states, 28, nth_bit(b4, 28))
+    words = do_d5_mod(words, 18, nth_bit(a5, 18))
+    words = do_d5_mod(words, 25, nth_bit(b4, 25))
+    words = do_d5_mod(words, 26, nth_bit(b4, 26))
+    words = do_d5_mod(words, 28, nth_bit(b4, 28))
 
     s = write_words_be(words)
     assert_collidable_round1(s)
