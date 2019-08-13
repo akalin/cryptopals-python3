@@ -119,12 +119,16 @@ def do_round2(X, state):
             states.append(list(state))
     return states
 
-def do_round3(X, state, start=0, end=16):
+def do_round3(X, state):
+    state = list(state)
+    states = []
     #round 3 - H function - x ^ y ^ z
-    for a,b,c,d,k,s in _round3[start:end]:
+    for i, (a,b,c,d,k,s) in enumerate(_round3):
         t = (state[a] + (state[b] ^ state[c] ^ state[d]) + X[k] + 0x6ed9eba1) & MASK_32
         state[a] = ((t<<s) & MASK_32) + (t>>(32-s))
-
+        if i % 4 == 3:
+            states.append(list(state))
+    return states
 
 #=========================================================================
 #main class
@@ -178,12 +182,11 @@ class md4(object):
 
         round1_states = do_round1(X, self._state)
         round2_states = do_round2(X, round1_states[-1])
-        state = round2_states[-1]
-        do_round3(X, state)
+        round3_states = do_round3(X, round2_states[-1])
 
         #add back into original state
         for i in range(4):
-            self._state[i] = (self._state[i]+state[i]) & MASK_32
+            self._state[i] = (self._state[i]+round3_states[-1][i]) & MASK_32
 
     def update(self, content):
         if not isinstance(content, bytes):

@@ -261,11 +261,9 @@ def assert_collidable_round3(s):
 
     round1_states = md4.do_round1(words, md4.INITIAL_STATE)
     round2_states = md4.do_round2(words, round1_states[-1])
-    state = round2_states[-1]
-    md4.do_round3(words, state, 0, 4)
-    _, b9, _, _ = state
-    md4.do_round3(words, state, 4, 8)
-    a10, _, _, _ = state
+    round3_states = md4.do_round3(words, round2_states[-1])
+    _, b9, _, _ = round3_states[0]
+    a10, _, _, _ = round3_states[1]
 
     assert_bit(b9, 31, 1)
     assert_bit(a10, 31, 1)
