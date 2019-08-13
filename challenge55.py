@@ -480,7 +480,8 @@ def do_a5_mod(words, a5i, b):
     initial_state = md4.INITIAL_STATE
     round1_states_new = md4.do_round1(words_new, initial_state)
     expected_round1_states = list(round1_states)
-    round1_states[0][0] = a1_new
+    expected_round1_states[0] = list(expected_round1_states[0])
+    expected_round1_states[0][0] = a1_new
     if round1_states_new != expected_round1_states:
         raise Exception('expected {}, got {}'.format(expected_round1_states, round1_states_new))
 
@@ -529,8 +530,10 @@ def do_d5_mod(words, d5i, b):
     assert_collidable_round2_a5(s)
 
     initial_state = md4.INITIAL_STATE
+    round1_states_new = md4.do_round1(words_new, initial_state)
     expected_round1_states = list(round1_states)
-    round1_states[1][0] = a2_new
+    expected_round1_states[1] = list(expected_round1_states[1])
+    expected_round1_states[1][0] = a2_new
     if round1_states_new != expected_round1_states:
         raise Exception('expected {}, got {}'.format(expected_round1_states, round1_states_new))
 
