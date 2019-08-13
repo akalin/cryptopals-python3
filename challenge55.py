@@ -250,11 +250,26 @@ def assert_collidable_round2_d5(s, loose=False):
     assert_bit(d5, 26, nth_bit(b4, 26))
     assert_bit(d5, 28, nth_bit(b4, 28))
 
+def assert_collidable_round2_c5(s, loose=False):
+    words = read_words_be(s)
+
+    round1_states = md4.do_round1(words)
+    a4, b4, c4, d4 = round1_states[-1]
+
+    round2_states = md4.do_round2(words, round1_states[-1])
+    a5, b5, c5, d5 = round2_states[0]
+
+    assert_bit(c5, 25, nth_bit(d5, 25))
+    assert_bit(c5, 26, nth_bit(d5, 26))
+    assert_bit(c5, 28, nth_bit(d5, 28))
+    assert_bit(c5, 31, nth_bit(d5, 31))
+
 def assert_collidable_round2(s):
     words = read_words_be(s)
 
     assert_collidable_round2_a5(s)
     assert_collidable_round2_d5(s)
+    assert_collidable_round2_c5(s)
 
     round1_states = md4.do_round1(words)
     a4, b4, c4, d4 = round1_states[-1]
@@ -263,11 +278,7 @@ def assert_collidable_round2(s):
     a5, b5, c5, d5 = round2_states[0]
     a6, b6, c6, d6 = round2_states[1]
 
-    assert_bit(c5, 25, nth_bit(d5, 25))
-    assert_bit(c5, 26, nth_bit(d5, 26))
-    assert_bit(c5, 28, nth_bit(d5, 28))
     assert_bit(c5, 29, nth_bit(d5, 29))
-    assert_bit(c5, 31, nth_bit(d5, 31))
 
     assert_bit(b5, 28, nth_bit(c5, 28))
     assert_bit(b5, 29, 1)
@@ -313,7 +324,7 @@ def set_nth_bit(x, n, b):
 def rrot(x, n):
     return (x >> n) | ((x << (32 - n)) & 0xffffffff)
 
-def do_single_step_mod(words):
+def do_single_step_mod(words, extra=True):
     a0, b0, c0, d0 = md4.INITIAL_STATE
     states = md4.do_round1(words)
     a1, b1, c1, d1 = states[0]
@@ -366,11 +377,12 @@ def do_single_step_mod(words):
     b2 = set_nth_bit(b2, 20, 0)
     b2 = set_nth_bit(b2, 21, 0)
 
-    for i in [25, 26, 28, 31]:
-        d2 = set_nth_bit(d2, i - 9, 0)
-        a2 = set_nth_bit(a2, i - 9, nth_bit(b1, i - 9))
-        c2 = set_nth_bit(c2, i - 9, 0)
-        b2 = set_nth_bit(b2, i - 9, 0)
+    if extra:
+        for i in [25, 26, 28, 31]:
+            d2 = set_nth_bit(d2, i - 9, 0)
+            a2 = set_nth_bit(a2, i - 9, nth_bit(b1, i - 9))
+            c2 = set_nth_bit(c2, i - 9, 0)
+            b2 = set_nth_bit(b2, i - 9, 0)
 
     a3 = set_nth_bit(a3, 12, 1)
     a3 = set_nth_bit(a3, 13, 1)
@@ -531,8 +543,6 @@ def do_d5_mod(words, d5i, b):
     a3, b3, c3, d3 = round1_states[2]
     a4, b4, c4, d4 = round1_states[3]
 
-    a6, b6, c6, d6 = round2_states[1]
-
     d5_new = set_nth_bit(d5, d5i, b)
 
     words_new = list(words)
@@ -552,12 +562,56 @@ def do_d5_mod(words, d5i, b):
     assert_collidable_round2_a5(s)
 
     round1_states_new = md4.do_round1(words_new)
-    expected_round1_states = list(round1_states)
-    expected_round1_states[1] = list(expected_round1_states[1])
-    expected_round1_states[1][0] = a2_new
-
     round2_states_new = md4.do_round2(words_new, round1_states_new[-1])
     _, _, _, d5_new2 = round2_states_new[0]
+    assert_bit(d5_new2, d5i, b)
+
+    return words_new
+
+def do_c5_mod(words, c5i, b):
+    s = write_words_be(words)
+#    assert_collidable_round1(s)
+    assert_collidable_round2_a5(s)
+    assert_collidable_round2_d5(s)
+
+    round1_states = md4.do_round1(words)
+    round2_states = md4.do_round2(words, round1_states[-1])
+    a5, b5, c5, d5 = round2_states[0]
+
+    if nth_bit(c5, c5i) == b:
+        return words
+
+    a0, b0, c0, d0 = md4.INITIAL_STATE
+
+    a1, b1, c1, d1 = round1_states[0]
+    a2, b2, c2, d2 = round1_states[1]
+    a3, b3, c3, d3 = round1_states[2]
+    a4, b4, c4, d4 = round1_states[3]
+
+    c5_new = set_nth_bit(c5, c5i, b)
+
+    words_new = list(words)
+    words_new[8] = (rrot(c5_new, 9) - c4 - md4.G(d5, a5, b4) - 0x5a827999) % 2**32
+
+    a3_new = lrot((a2 + md4.F(b2, c2, d2) + words_new[8]) % 2**32, 3)
+
+    words_new[9] = (rrot(d3, 7) - d2 - md4.F(a3_new, b2, c2)) % 2**32
+    words_new[10] = (rrot(c3, 11) - c2 - md4.F(d3, a3_new, b2)) % 2**32
+    words_new[11] = (rrot(b3, 19) - b2 - md4.F(c3, d3, a3_new)) % 2**32
+    words_new[12] = (rrot(a4, 3) - a3_new - md4.F(b3, c3, d3)) % 2**32
+
+#    words_new = do_single_step_mod(words_new, extra=False)
+
+    s = write_words_be(words_new)
+#    assert_collidable_round1(s)
+    assert_collidable_round2_a5(s)
+    assert_collidable_round2_d5(s)
+
+    round1_states_new = md4.do_round1(words_new)
+    round2_states_new = md4.do_round2(words_new, round1_states_new[-1])
+    _, _, c5_new2, _ = round2_states_new[0]
+    print('x {:02x} {:02x} {:02x}'.format(c5, c5_new, c5_new2))
+    assert_bit(c5_new2, c5i, b)
 
     return words_new
 
@@ -589,6 +643,22 @@ def do_multi_step_mod(words):
     assert_collidable_round1(s)
     assert_collidable_round2_a5(s)
     assert_collidable_round2_d5(s)
+
+    round1_states = md4.do_round1(words)
+    _, b4, _, _ = round1_states[-1]
+    round2_states = md4.do_round2(words, round1_states[-1])
+    a5, b5, c5, d5 = round2_states[0]
+
+    words = do_c5_mod(words, 25, nth_bit(d5, 25))
+    words = do_c5_mod(words, 26, nth_bit(d5, 26))
+    words = do_c5_mod(words, 28, nth_bit(d5, 28))
+    words = do_c5_mod(words, 31, nth_bit(d5, 31))
+
+    s = write_words_be(words)
+#    assert_collidable_round1(s)
+    assert_collidable_round2_a5(s)
+    assert_collidable_round2_d5(s)
+    assert_collidable_round2_c5(s)
 
     return words
 
