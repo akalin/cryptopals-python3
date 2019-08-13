@@ -99,7 +99,7 @@ _round3 = [
 
 def do_round1(X, state):
     state = list(state)
-    states = [list(state)]
+    states = []
     #round 1 - F function - (x&y)|(~x & z)
     for i, (a,b,c,d,k,s) in enumerate(_round1):
         t = (state[a] + F(state[b],state[c],state[d]) + X[k]) & MASK_32
@@ -110,7 +110,7 @@ def do_round1(X, state):
 
 def do_round2(X, state):
     state = list(state)
-    states = [list(state)]
+    states = []
     #round 2 - G function
     for i, (a,b,c,d,k,s) in enumerate(_round2):
         t = (state[a] + G(state[b],state[c],state[d]) + X[k] + 0x5a827999) & MASK_32
