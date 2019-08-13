@@ -29,37 +29,40 @@ INITIAL_STATE = [
     0x10325476,
 ]
 
-#round 1 table - [abcd k s]
-_round1 = [
-    [0,1,2,3, 0,3],
-    [3,0,1,2, 1,7],
-    [2,3,0,1, 2,11],
-    [1,2,3,0, 3,19],
-
-    [0,1,2,3, 4,3],
-    [3,0,1,2, 5,7],
-    [2,3,0,1, 6,11],
-    [1,2,3,0, 7,19],
-
-    [0,1,2,3, 8,3],
-    [3,0,1,2, 9,7],
-    [2,3,0,1, 10,11],
-    [1,2,3,0, 11,19],
-
-    [0,1,2,3, 12,3],
-    [3,0,1,2, 13,7],
-    [2,3,0,1, 14,11],
-    [1,2,3,0, 15,19],
-]
-
-def do_round1(X, state=INITIAL_STATE):
-    state = list(state)
+def do_round1(X, initial_state=INITIAL_STATE):
+    s = list(initial_state)
     states = []
+
     #round 1 - F function - (x&y)|(~x & z)
-    for i, (a,b,c,d,k,s) in enumerate(_round1):
-        state[a] = lrot32((state[a] + F(state[b],state[c],state[d]) + X[k]), s)
-        if i % 4 == 3:
-            states.append(list(state))
+
+    s[0] = lrot32((s[0] + F(s[1], s[2], s[3]) + X[ 0]), 3 )
+    s[3] = lrot32((s[3] + F(s[0], s[1], s[2]) + X[ 1]), 7 )
+    s[2] = lrot32((s[2] + F(s[3], s[0], s[1]) + X[ 2]), 11)
+    s[1] = lrot32((s[1] + F(s[2], s[3], s[0]) + X[ 3]), 19)
+
+    states.append(list(s))
+
+    s[0] = lrot32((s[0] + F(s[1], s[2], s[3]) + X[ 4]), 3 )
+    s[3] = lrot32((s[3] + F(s[0], s[1], s[2]) + X[ 5]), 7 )
+    s[2] = lrot32((s[2] + F(s[3], s[0], s[1]) + X[ 6]), 11)
+    s[1] = lrot32((s[1] + F(s[2], s[3], s[0]) + X[ 7]), 19)
+
+    states.append(list(s))
+
+    s[0] = lrot32((s[0] + F(s[1], s[2], s[3]) + X[ 8]), 3 )
+    s[3] = lrot32((s[3] + F(s[0], s[1], s[2]) + X[ 9]), 7 )
+    s[2] = lrot32((s[2] + F(s[3], s[0], s[1]) + X[10]), 11)
+    s[1] = lrot32((s[1] + F(s[2], s[3], s[0]) + X[11]), 19)
+
+    states.append(list(s))
+
+    s[0] = lrot32((s[0] + F(s[1], s[2], s[3]) + X[12]), 3 )
+    s[3] = lrot32((s[3] + F(s[0], s[1], s[2]) + X[13]), 7 )
+    s[2] = lrot32((s[2] + F(s[3], s[0], s[1]) + X[14]), 11)
+    s[1] = lrot32((s[1] + F(s[2], s[3], s[0]) + X[15]), 19)
+
+    states.append(list(s))
+
     return states
 
 #round 2 table - [abcd k s]
