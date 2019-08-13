@@ -537,9 +537,11 @@ def tweak_and_test(words, verbose=False):
         print('s after tweaking for round 1 = {}'.format(s))
 
     do_multi_step_mod(words)
+    do_single_step_mod(words)
+    do_multi_step_mod(words)
 
     s = write_words_be(words)
-    assert_collidable_round1(s, True)
+    assert_collidable_round1(s)
     assert_collidable_round2(s, True)
 
     if verbose:
