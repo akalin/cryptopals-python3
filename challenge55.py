@@ -449,14 +449,14 @@ def do_a5_mod(words, a5i, b):
     assert_collidable_round1(s)
 
     initial_state = md4.INITIAL_STATE
-    round1_states = md4.do_round1(words, md4.INITIAL_STATE)
+    round1_states = md4.do_round1(words, initial_state)
     round2_states = md4.do_round2(words, round1_states[-1])
     a5, b5, c5, d5 = round2_states[0]
 
     if nth_bit(a5, a5i) == b:
         return words
 
-    a0, b0, c0, d0 = md4.INITIAL_STATE
+    a0, b0, c0, d0 = initial_state
     a1, b1, c1, d1 = round1_states[0]
     a2, b2, c2, d2 = round1_states[1]
     a3, b3, c3, d3 = round1_states[2]
@@ -478,7 +478,7 @@ def do_a5_mod(words, a5i, b):
     assert_collidable_round1(s)
 
     initial_state = md4.INITIAL_STATE
-    round1_states = md4.do_round1(words, md4.INITIAL_STATE)
+    round1_states = md4.do_round1(words, initial_state)
     round2_states = md4.do_round2(words, round1_states[-1])
     a5, b5, c5, d5 = round2_states[0]
 
