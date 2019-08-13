@@ -108,11 +108,16 @@ def do_round1(X, state):
             states.append(list(state))
     return states
 
-def do_round2(X, state, start=0, end=16):
+def do_round2(X, state):
+    state = list(state)
+    states = [list(state)]
     #round 2 - G function
-    for a,b,c,d,k,s in _round2[start:end]:
+    for i, (a,b,c,d,k,s) in enumerate(_round2):
         t = (state[a] + G(state[b],state[c],state[d]) + X[k] + 0x5a827999) & MASK_32
         state[a] = ((t<<s) & MASK_32) + (t>>(32-s))
+        if i % 4 == 3:
+            states.append(list(state))
+    return states
 
 def do_round3(X, state, start=0, end=16):
     #round 3 - H function - x ^ y ^ z
@@ -172,8 +177,8 @@ class md4(object):
         X = struct.unpack("<16I", block)
 
         round1_states = do_round1(X, self._state)
-        state = round1_states[-1]
-        do_round2(X, state)
+        round2_states = do_round2(X, round1_states[-1])
+        state = round2_states[-1]
         do_round3(X, state)
 
         #add back into original state
