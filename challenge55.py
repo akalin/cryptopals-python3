@@ -1,6 +1,7 @@
 import binascii
 import md4
 import struct
+import util
 
 def md4_hexdigest(m, msglen=None):
     md4obj = md4.md4()
@@ -120,6 +121,9 @@ def assert_collidable_round1(s, loose=False):
     if not loose:
         assert_bit(a2, 25, 0)
     assert_bit(a2, 13, nth_bit(b1, 13))
+
+    if loose:
+        return
 
     assert_bit(d2, 13, 0)
     assert_bit(d2, 18, nth_bit(a2, 18))
@@ -520,22 +524,59 @@ def do_multi_step_mod(words):
     a2, d5 = do_d5_mod(words, a2, d5, 26, nth_bit(b4, 26), a1, b1, c1, d1, b2, c2, d2, a3, b4, c4, d4, a5)
     a2, d5 = do_d5_mod(words, a2, d5, 28, nth_bit(b4, 28), a1, b1, c1, d1, b2, c2, d2, a3, b4, c4, d4, a5)
 
-if __name__ == '__main__':
-    test_md4()
-    test_collision()
-
-    words = [0] * 16
-    print('s before tweaking = {}'.format(write_words_be(words)))
+def tweak_and_test(words, verbose=False):
+    if verbose:
+        print('s before tweaking = {}'.format(write_words_be(words)))
 
     do_single_step_mod(words)
 
     s = write_words_be(words)
     assert_collidable_round1(s)
-    print('s after tweaking for round 1 = {}'.format(s))
+
+    if verbose:
+        print('s after tweaking for round 1 = {}'.format(s))
 
     do_multi_step_mod(words)
 
     s = write_words_be(words)
     assert_collidable_round1(s, True)
     assert_collidable_round2(s, True)
-    print('s after tweaking for round 2 = {}'.format(s))
+
+    if verbose:
+        print('s after tweaking for round 2 = {}'.format(s))
+
+    apply_collision_differential(words)
+    s_prime = write_words_be(words)
+
+    if verbose:
+        print('s\' = {}'.format(s_prime))
+
+    h = md4_hexdigest(bytes(s, 'ascii'))
+    h_prime = md4_hexdigest(bytes(s_prime, 'ascii'))
+    if h == h_prime:
+        print('md4 {} == {}'.format(h, h_prime))
+        return (s, s_prime)
+    else:
+        if verbose:
+            print('md4 {} != {}'.format(h, h_prime))
+        return None
+
+def find_collision(n):
+    for i in range(n):
+        if i % 1000 == 0:
+            print('Iteration {}/{}'.format(i + 1, n))
+        b = util.randbytes(64)
+        words = struct.unpack('>16I', b)
+        words = list(words)
+        result = tweak_and_test(words)
+        if result:
+            break
+
+if __name__ == '__main__':
+    test_md4()
+    test_collision()
+
+    words = [0] * 16
+    tweak_and_test(words, True)
+
+    find_collision(10000)
