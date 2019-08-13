@@ -97,7 +97,7 @@ _round3 = [
     [1,2,3,0, 15,15],
 ]
 
-def do_round1(X, state):
+def do_round1(X, state=INITIAL_STATE):
     state = list(state)
     states = []
     #round 1 - F function - (x&y)|(~x & z)

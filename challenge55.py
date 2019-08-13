@@ -83,7 +83,7 @@ def nth_bit(x, n):
 def assert_bit(x, n, expected_b):
     b = nth_bit(x, n)
     if b != expected_b:
-        raise Exception('expected {}, got {}'.format(expected_b, b))
+        raise Exception('expected {:02x}[{}]={}, got {}'.format(x, n, expected_b, b))
 
 def assert_collidable_round1(s):
     words = read_words_be(s)
@@ -510,7 +510,7 @@ def do_d5_mod(words, d5i, b):
 
     a6, b6, c6, d6 = round2_states[1]
 
-    d5_new = set_nth_bit(d5, i, b)
+    d5_new = set_nth_bit(d5, d5i, b)
 
     words_new = list(words)
     words_new[4] = (rrot(d5_new, 5) - d4 - md4.G(a5, b4, c4) - 0x5a827999) % 2**32
@@ -555,7 +555,7 @@ def do_multi_step_mod(words):
     assert_collidable_round2_a5(s)
 
     round1_states = md4.do_round1(words)
-    _, _, b4, _ = round1_states[-1]
+    _, b4, _, _ = round1_states[-1]
     round2_states = md4.do_round2(words, round1_states[-1])
     a5, b5, c5, d5 = round2_states[0]
 
