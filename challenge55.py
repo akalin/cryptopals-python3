@@ -485,9 +485,9 @@ def do_a5_mod(words, a5i, b):
         raise Exception('expected {}, got {}'.format(round1_states[1:], round1_states_new[1:]))
 
     round2_states_new = md4.do_round2(words_new, round1_states_new[-1])
-    a5, b5, c5, d5 = round2_states_new[0]
-
-    assert_bit(a5, a5i, b)
+    a5_new2, _, _, _ = round2_states_new[0]
+    if a5_new2 != a5_new:
+        raise Exception('expected {}, got {}'.format(a5_new, a5_new2))
 
     return words_new
 
@@ -531,9 +531,9 @@ def do_d5_mod(words, d5i, b):
     initial_state = md4.INITIAL_STATE
     round1_states_new = md4.do_round1(words_new, md4.INITIAL_STATE)
     round2_states_new = md4.do_round2(words_new, round1_states_new[-1])
-    a5, b5, c5, d5 = round2_states_new[0]
-
-    assert_bit(d5, d5i, b)
+    _, _, _, d5_new2 = round2_states_new[0]
+    if d5_new2 != d5_new:
+        raise Exception('expected {}, got {}'.format(d5_new, d5_new2))
 
     return words_new
 
