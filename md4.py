@@ -29,11 +29,9 @@ INITIAL_STATE = [
     0x10325476,
 ]
 
-def do_round1(X, initial_state=INITIAL_STATE):
+def do_round1(X, s0=INITIAL_STATE):
 
     #round 1 - F function - (x&y)|(~x & z)
-
-    s0 = initial_state
 
     s1 = [0, 0, 0, 0]
 
@@ -90,40 +88,38 @@ _round2 = [
 
 ROUND2_K = 0x5a827999
 
-def do_round2(X, initial_state):
+def do_round2(X, s4):
     #round 2 - G function
 
-    s0 = initial_state
+    s5 = [0, 0, 0, 0]
 
-    s1 = [0, 0, 0, 0]
+    s5[0] = lrot32((s4[0] + G(s4[1], s4[2], s4[3]) + X[ 0] + ROUND2_K),  3)
+    s5[3] = lrot32((s4[3] + G(s5[0], s4[1], s4[2]) + X[ 4] + ROUND2_K),  5)
+    s5[2] = lrot32((s4[2] + G(s5[3], s5[0], s4[1]) + X[ 8] + ROUND2_K),  9)
+    s5[1] = lrot32((s4[1] + G(s5[2], s5[3], s5[0]) + X[12] + ROUND2_K), 13)
 
-    s1[0] = lrot32((s0[0] + G(s0[1], s0[2], s0[3]) + X[ 0] + ROUND2_K),  3)
-    s1[3] = lrot32((s0[3] + G(s1[0], s0[1], s0[2]) + X[ 4] + ROUND2_K),  5)
-    s1[2] = lrot32((s0[2] + G(s1[3], s1[0], s0[1]) + X[ 8] + ROUND2_K),  9)
-    s1[1] = lrot32((s0[1] + G(s1[2], s1[3], s1[0]) + X[12] + ROUND2_K), 13)
+    s6 = [0, 0, 0, 0]
 
-    s2 = [0, 0, 0, 0]
+    s6[0] = lrot32((s5[0] + G(s5[1], s5[2], s5[3]) + X[ 1] + ROUND2_K),  3)
+    s6[3] = lrot32((s5[3] + G(s6[0], s5[1], s5[2]) + X[ 5] + ROUND2_K),  5)
+    s6[2] = lrot32((s5[2] + G(s6[3], s6[0], s5[1]) + X[ 9] + ROUND2_K),  9)
+    s6[1] = lrot32((s5[1] + G(s6[2], s6[3], s6[0]) + X[13] + ROUND2_K), 13)
 
-    s2[0] = lrot32((s1[0] + G(s1[1], s1[2], s1[3]) + X[ 1] + ROUND2_K),  3)
-    s2[3] = lrot32((s1[3] + G(s2[0], s1[1], s1[2]) + X[ 5] + ROUND2_K),  5)
-    s2[2] = lrot32((s1[2] + G(s2[3], s2[0], s1[1]) + X[ 9] + ROUND2_K),  9)
-    s2[1] = lrot32((s1[1] + G(s2[2], s2[3], s2[0]) + X[13] + ROUND2_K), 13)
+    s7 = [0, 0, 0, 0]
 
-    s3 = [0, 0, 0, 0]
+    s7[0] = lrot32((s6[0] + G(s6[1], s6[2], s6[3]) + X[ 2] + ROUND2_K),  3)
+    s7[3] = lrot32((s6[3] + G(s7[0], s6[1], s6[2]) + X[ 6] + ROUND2_K),  5)
+    s7[2] = lrot32((s6[2] + G(s7[3], s7[0], s6[1]) + X[10] + ROUND2_K),  9)
+    s7[1] = lrot32((s6[1] + G(s7[2], s7[3], s7[0]) + X[14] + ROUND2_K), 13)
 
-    s3[0] = lrot32((s2[0] + G(s2[1], s2[2], s2[3]) + X[ 2] + ROUND2_K),  3)
-    s3[3] = lrot32((s2[3] + G(s3[0], s2[1], s2[2]) + X[ 6] + ROUND2_K),  5)
-    s3[2] = lrot32((s2[2] + G(s3[3], s3[0], s2[1]) + X[10] + ROUND2_K),  9)
-    s3[1] = lrot32((s2[1] + G(s3[2], s3[3], s3[0]) + X[14] + ROUND2_K), 13)
+    s8 = [0, 0, 0, 0]
 
-    s4 = [0, 0, 0, 0]
+    s8[0] = lrot32((s7[0] + G(s7[1], s7[2], s7[3]) + X[ 3] + ROUND2_K),  3)
+    s8[3] = lrot32((s7[3] + G(s8[0], s7[1], s7[2]) + X[ 7] + ROUND2_K),  5)
+    s8[2] = lrot32((s7[2] + G(s8[3], s8[0], s7[1]) + X[11] + ROUND2_K),  9)
+    s8[1] = lrot32((s7[1] + G(s8[2], s8[3], s8[0]) + X[15] + ROUND2_K), 13)
 
-    s4[0] = lrot32((s3[0] + G(s3[1], s3[2], s3[3]) + X[ 3] + ROUND2_K),  3)
-    s4[3] = lrot32((s3[3] + G(s4[0], s3[1], s3[2]) + X[ 7] + ROUND2_K),  5)
-    s4[2] = lrot32((s3[2] + G(s4[3], s4[0], s3[1]) + X[11] + ROUND2_K),  9)
-    s4[1] = lrot32((s3[1] + G(s4[2], s4[3], s4[0]) + X[15] + ROUND2_K), 13)
-
-    return [s1, s2, s3, s4]
+    return [s5, s6, s7, s8]
 
 #round 3 table - [abcd k s]
 _round3 = [
