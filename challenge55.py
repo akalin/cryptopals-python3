@@ -431,6 +431,47 @@ def do_single_step_mod(words):
     words[14] = (rrot(c4, 11) - c3 - md4.F(d4, a4, b3)) % 2**32
     words[15] = (rrot(b4, 19) - b3 - md4.F(c4, d4, a4)) % 2**32
 
+def lrot(x, n):
+    return rrot(x, 32 - n)
+
+def do_a5_mod(words, a1, a5, i, expected_b, a0, b0, c0, d0, b1, c1, d1, a2, a4, b4, c4, d4):
+    if expected_b == nth_bit(a5, i):
+        return a1, a5
+
+    a5_new = set_nth_bit(a5, i, expected_b)
+
+    words[0] = (rrot(a5_new, 3) - a4 - md4.G(b4, c4, d4) - 0x5a827999) % 2**32
+
+    a1_new = lrot((a0 + md4.F(b0, c0, d0) + words[0]) % 2**32, 3)
+
+    words[1] = (rrot(d1, 7) - d0 - md4.F(a1_new, b0, c0)) % 2**32
+    words[2] = (rrot(c1, 11) - c0 - md4.F(d1, a1_new, b0)) % 2**32
+    words[3] = (rrot(b1, 19) - b0 - md4.F(c1, d1, a1_new)) % 2**32
+    words[4] = (rrot(a2, 3) - a1_new - md4.F(b1, c1, d1)) % 2**32
+
+    return a1_new, a5_new
+
+def do_multi_step_mod(words):
+    md4obj = md4.md4()
+    state = list(md4obj._state)
+    a0, b0, c0, d0 = state
+    md4obj._do_round1(words, state, 0, 4)
+    a1, b1, c1, d1 = state
+    md4obj._do_round1(words, state, 4, 8)
+    a2, b2, c2, d2 = state
+    md4obj._do_round1(words, state, 8, 12)
+    a3, b3, c3, d3 = state
+    md4obj._do_round1(words, state, 12, 16)
+    a4, b4, c4, d4 = state
+    md4obj._do_round2(words, state, 0, 4)
+    a5, b5, c5, d5 = state
+
+    a1, a5 = do_a5_mod(words, a1, a5, 18, nth_bit(c4, 18), a0, b0, c0, d0, b1, c1, d1, a2, a4, b4, c4, d4)
+    a1, a5 = do_a5_mod(words, a1, a5, 25, 1, a0, b0, c0, d0, b1, c1, d1, a2, a4, b4, c4, d4)
+    a1, a5 = do_a5_mod(words, a1, a5, 26, 0, a0, b0, c0, d0, b1, c1, d1, a2, a4, b4, c4, d4)
+    a1, a5 = do_a5_mod(words, a1, a5, 28, 1, a0, b0, c0, d0, b1, c1, d1, a2, a4, b4, c4, d4)
+    a1, a5 = do_a5_mod(words, a1, a5, 31, 1, a0, b0, c0, d0, b1, c1, d1, a2, a4, b4, c4, d4)
+
 if __name__ == '__main__':
     test_md4()
     test_collision()
@@ -442,4 +483,11 @@ if __name__ == '__main__':
 
     s = write_words_be(words)
     assert_collidable_round1(s)
-    print('s after tweaking = {}'.format(s))
+    print('s after tweaking for round 1 = {}'.format(s))
+
+    do_multi_step_mod(words)
+
+    s = write_words_be(words)
+    assert_collidable_round1(s)
+    assert_collidable_round2(s)
+    print('s after tweaking for round 2 = {}'.format(s))
