@@ -222,10 +222,9 @@ def assert_collidable_round2(s, loose=False):
     a4, b4, c4, d4 = states[4]
     state = list(states[4])
 
-    md4obj = md4.md4()
-    md4obj._do_round2(words, state, 0, 4)
+    md4.do_round2(words, state, 0, 4)
     a5, b5, c5, d5 = state
-    md4obj._do_round2(words, state, 4, 8)
+    md4.do_round2(words, state, 4, 8)
     a6, b6, c6, d6 = state
 
     assert_bit(a5, 18, nth_bit(c4, 18))
@@ -274,11 +273,10 @@ def assert_collidable_round3(s):
     a4, b4, c4, d4 = states[4]
     state = list(states[4])
 
-    md4obj = md4.md4()
-    md4obj._do_round2(words, state)
-    md4obj._do_round3(words, state, 0, 4)
+    md4.do_round2(words, state)
+    md4.do_round3(words, state, 0, 4)
     _, b9, _, _ = state
-    md4obj._do_round3(words, state, 4, 8)
+    md4.do_round3(words, state, 4, 8)
     a10, _, _, _ = state
 
     assert_bit(b9, 31, 1)
@@ -495,8 +493,7 @@ def do_multi_step_mod(words):
     a4, b4, c4, d4 = states[4]
     state = list(states[4])
 
-    md4obj = md4.md4()
-    md4obj._do_round2(words, state, 0, 4)
+    md4.do_round2(words, state, 0, 4)
     a5, b5, c5, d5 = state
 
     a1, a5 = do_a5_mod(words, a1, a5, 18, nth_bit(c4, 18), a0, b0, c0, d0, b1, c1, d1, a2, a4, b4, c4, d4)

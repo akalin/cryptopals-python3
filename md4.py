@@ -51,6 +51,52 @@ _round1 = [
     [1,2,3,0, 15,19],
 ]
 
+#round 2 table - [abcd k s]
+_round2 = [
+    [0,1,2,3, 0,3],
+    [3,0,1,2, 4,5],
+    [2,3,0,1, 8,9],
+    [1,2,3,0, 12,13],
+
+    [0,1,2,3, 1,3],
+    [3,0,1,2, 5,5],
+    [2,3,0,1, 9,9],
+    [1,2,3,0, 13,13],
+
+    [0,1,2,3, 2,3],
+    [3,0,1,2, 6,5],
+    [2,3,0,1, 10,9],
+    [1,2,3,0, 14,13],
+
+    [0,1,2,3, 3,3],
+    [3,0,1,2, 7,5],
+    [2,3,0,1, 11,9],
+    [1,2,3,0, 15,13],
+]
+
+#round 3 table - [abcd k s]
+_round3 = [
+    [0,1,2,3, 0,3],
+    [3,0,1,2, 8,9],
+    [2,3,0,1, 4,11],
+    [1,2,3,0, 12,15],
+
+    [0,1,2,3, 2,3],
+    [3,0,1,2, 10,9],
+    [2,3,0,1, 6,11],
+    [1,2,3,0, 14,15],
+
+    [0,1,2,3, 1,3],
+    [3,0,1,2, 9,9],
+    [2,3,0,1, 5,11],
+    [1,2,3,0, 13,15],
+
+    [0,1,2,3, 3,3],
+    [3,0,1,2, 11,9],
+    [2,3,0,1, 7,11],
+    [1,2,3,0, 15,15],
+]
+
 def do_round1(X, state):
     state = list(state)
     states = [list(state)]
@@ -61,6 +107,19 @@ def do_round1(X, state):
         if i % 4 == 3:
             states.append(list(state))
     return states
+
+def do_round2(X, state, start=0, end=16):
+    #round 2 - G function
+    for a,b,c,d,k,s in _round2[start:end]:
+        t = (state[a] + G(state[b],state[c],state[d]) + X[k] + 0x5a827999) & MASK_32
+        state[a] = ((t<<s) & MASK_32) + (t>>(32-s))
+
+def do_round3(X, state, start=0, end=16):
+    #round 3 - H function - x ^ y ^ z
+    for a,b,c,d,k,s in _round3[start:end]:
+        t = (state[a] + (state[b] ^ state[c] ^ state[d]) + X[k] + 0x6ed9eba1) & MASK_32
+        state[a] = ((t<<s) & MASK_32) + (t>>(32-s))
+
 
 #=========================================================================
 #main class
@@ -107,64 +166,6 @@ class md4(object):
             self._state = list(INITIAL_STATE)
         self._buf = b''
 
-    #round 2 table - [abcd k s]
-    _round2 = [
-        [0,1,2,3, 0,3],
-        [3,0,1,2, 4,5],
-        [2,3,0,1, 8,9],
-        [1,2,3,0, 12,13],
-
-        [0,1,2,3, 1,3],
-        [3,0,1,2, 5,5],
-        [2,3,0,1, 9,9],
-        [1,2,3,0, 13,13],
-
-        [0,1,2,3, 2,3],
-        [3,0,1,2, 6,5],
-        [2,3,0,1, 10,9],
-        [1,2,3,0, 14,13],
-
-        [0,1,2,3, 3,3],
-        [3,0,1,2, 7,5],
-        [2,3,0,1, 11,9],
-        [1,2,3,0, 15,13],
-    ]
-
-    #round 3 table - [abcd k s]
-    _round3 = [
-        [0,1,2,3, 0,3],
-        [3,0,1,2, 8,9],
-        [2,3,0,1, 4,11],
-        [1,2,3,0, 12,15],
-
-        [0,1,2,3, 2,3],
-        [3,0,1,2, 10,9],
-        [2,3,0,1, 6,11],
-        [1,2,3,0, 14,15],
-
-        [0,1,2,3, 1,3],
-        [3,0,1,2, 9,9],
-        [2,3,0,1, 5,11],
-        [1,2,3,0, 13,15],
-
-        [0,1,2,3, 3,3],
-        [3,0,1,2, 11,9],
-        [2,3,0,1, 7,11],
-        [1,2,3,0, 15,15],
-    ]
-
-    def _do_round2(self, X, state, start=0, end=16):
-        #round 2 - G function
-        for a,b,c,d,k,s in self._round2[start:end]:
-            t = (state[a] + G(state[b],state[c],state[d]) + X[k] + 0x5a827999) & MASK_32
-            state[a] = ((t<<s) & MASK_32) + (t>>(32-s))
-
-    def _do_round3(self, X, state, start=0, end=16):
-        #round 3 - H function - x ^ y ^ z
-        for a,b,c,d,k,s in self._round3[start:end]:
-            t = (state[a] + (state[b] ^ state[c] ^ state[d]) + X[k] + 0x6ed9eba1) & MASK_32
-            state[a] = ((t<<s) & MASK_32) + (t>>(32-s))
-
     def _process(self, block):
         "process 64 byte block"
         #unpack block into 16 32-bit ints
@@ -172,8 +173,8 @@ class md4(object):
 
         round1_states = do_round1(X, self._state)
         state = round1_states[-1]
-        self._do_round2(X, state)
-        self._do_round3(X, state)
+        do_round2(X, state)
+        do_round3(X, state)
 
         #add back into original state
         for i in range(4):
