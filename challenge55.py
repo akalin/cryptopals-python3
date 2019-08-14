@@ -609,8 +609,6 @@ def flip_d5_bit(X, d5i):
     s2_new = [a2_new, s2[1], s2[2], s2[3]]
     X_new = invert_round1(s0, [s1, s2_new, s3, s4])
 
-    delta = X[4] ^ X_new[4]
-
     for i in list(range(0, 4)) + list(range(9, 16)):
         assert_word_eq(X_new[i], X[i])
 
@@ -662,47 +660,48 @@ def do_d5_mod(words, d5i, b):
 def flip_c5_bit(X, c5i):
     s0 = md4.INITIAL_STATE
     [s1, s2, s3, s4] = md4.do_round1(X, s0)
-    [s5, s6, s7, s8] = md4.do_round2(X, s4)
-
-    _, _, c5, d5 = s5
-    if nth_bit(c5, c5i) != nth_bit(d5, c5i):
-        return X
 
     _, _, _, d2 = s2
-    if nth_bit(d2, c5i - 9) == 1:
-        raise Exception('d2[{}] unexpectedly set', c5i - 9)
+    # ?
+    d2_new = flip_nth_bit(d2, c5i - 9)
 
-    X_new = list(X)
-    X_new[5] = (X[5] + (1 << (c5i - 16))) & 0xffffffff
+    s2_new = [s2[0], s2[1], s2[2], d2_new]
+    X_new = invert_round1(s0, [s1, s2_new, s3, s4])
 
-    d2_new = set_nth_bit(d2, c5i - 9, 1)
+    for i in list(range(0, 5)) + list(range(10, 16)):
+        assert_word_eq(X_new[i], X[i])
 
-    expected_d2_new = lrot32((s1[3] + md4.F(s2[0], s1[1], s1[2]) + X_new[5]),  7)
-    assert_word_eq(expected_d2_new, d2_new)
-
-    X_new[8] = (X[8] - (1 << (c5i - 9))) & 0xffffffff
-    X_new[9] = (X[9] - (1 << (c5i - 9))) & 0xffffffff
-
-    expected_c5_new = flip_nth_bit(c5, c5i)
+    [s5, s6, s7, s8] = md4.do_round2(X, s4)
 
     round1_states_new = md4.do_round1(X_new, s0)
+    expected_round1_states = [s1, s2_new, s3, s4]
+    for i in range(4):
+        if round1_states_new[i] != expected_round1_states[i]:
+            raise Exception('expected s[{}]={}, got {}'.format(i, dump_s(expected_round1_states[i]), dump_s(round1_states_new[i])))
+
     round2_states_new = md4.do_round2(X_new, round1_states_new[-1])
+
+    [s5, s6, s7, s8] = md4.do_round2(X, s4)
+    expected_round1_states = [round2_states_new[0], s6, s7, s8]
     _, _, c5_new, _ = round2_states_new[0]
-    assert_word_eq(expected_c5_new, c5_new)
+
+    _, _, c5, _ = s5
+    if nth_bit(c5_new, c5i) == nth_bit(c5, c5i):
+        raise Exception('c5 bit {} not flipped'.format(c5i))
 
     return X_new
 
 def test_flip_c5_bit():
     for i in range(100):
         X = randX()
-        X = do_single_step_mod(X)
+        X = do_single_step_mod(X, extra=True)
 
         for c5i in [25, 26, 28, 31]:
                 flip_c5_bit(X, c5i)
 
 def do_c5_mod(words, c5i, b):
     s = write_words_be(words)
-#    assert_collidable_round1(s, extra=True)
+    assert_collidable_round1(s, extra=True)
     assert_collidable_round2_a5(s)
     assert_collidable_round2_d5(s)
 
@@ -842,7 +841,7 @@ if __name__ == '__main__':
     test_invert_round1()
     test_flip_a5_bit()
     test_flip_d5_bit()
-#    test_flip_c5_bit()
+    test_flip_c5_bit()
 
     words = [0] * 16
     tweak_and_test(words, True)
