@@ -568,7 +568,7 @@ def assert_word_eq(expected, actual):
     if actual != expected:
         raise Exception('expected {:x}, got {:x}'.format(expected, actual))
 
-def flip_a5_bit(X, a5i):
+def flip_a5_bit(X, a5i, check=True):
     s0 = md4.INITIAL_STATE
     [s1, s2, s3, s4] = md4.do_round1(X, s0)
 
@@ -578,6 +578,9 @@ def flip_a5_bit(X, a5i):
 
     s1_new = [a1_new, s1[1], s1[2], s1[3]]
     X_new = invert_round1(s0, [s1_new, s2, s3, s4])
+
+    if not check:
+        return X_new
 
     for i in range(5, 16):
         assert_word_eq(X_new[i], X[i])
@@ -611,8 +614,9 @@ def test_flip_a5_bit():
 
             assert_collidable_round1(X_new, extra=False)
 
-def do_a5_mod(words, a5i, b):
-    assert_collidable_round1(words, extra=False)
+def do_a5_mod(words, a5i, b, check=True):
+    if check:
+        assert_collidable_round1(words, extra=False)
 
     round1_states = md4.do_round1(words)
     round2_states = md4.do_round2(words, round1_states[-1])
@@ -621,14 +625,15 @@ def do_a5_mod(words, a5i, b):
     if nth_bit(a5, a5i) == b:
         return words
 
-    words_new = flip_a5_bit(words, a5i)
+    words_new = flip_a5_bit(words, a5i, check)
 
-    assert_collidable_round1(words_new, extra=False)
-    assert_collidable_round2_a5(words_new, a5i)
+    if check:
+        assert_collidable_round1(words_new, extra=False)
+        assert_collidable_round2_a5(words_new, a5i)
 
     return words_new
 
-def flip_d5_bit(X, d5i):
+def flip_d5_bit(X, d5i, check=True):
     s0 = md4.INITIAL_STATE
     [s1, s2, s3, s4] = md4.do_round1(X, s0)
 
@@ -638,6 +643,9 @@ def flip_d5_bit(X, d5i):
 
     s2_new = [a2_new, s2[1], s2[2], s2[3]]
     X_new = invert_round1(s0, [s1, s2_new, s3, s4])
+
+    if not check:
+        return X_new
 
     for i in list(range(0, 4)) + list(range(9, 16)):
         assert_word_eq(X_new[i], X[i])
@@ -671,9 +679,10 @@ def test_flip_d5_bit():
 
             assert_collidable_round1(X_new, extra=False)
 
-def do_d5_mod(words, d5i, b):
-    assert_collidable_round1(words, extra=False)
-    assert_collidable_round2_a5(words)
+def do_d5_mod(words, d5i, b, check=False):
+    if check:
+        assert_collidable_round1(words, extra=False)
+        assert_collidable_round2_a5(words)
 
     round1_states = md4.do_round1(words)
     round2_states = md4.do_round2(words, round1_states[-1])
@@ -682,15 +691,16 @@ def do_d5_mod(words, d5i, b):
     if nth_bit(d5, d5i) == b:
         return words
 
-    words_new = flip_d5_bit(words, d5i)
+    words_new = flip_d5_bit(words, d5i, check)
 
-    assert_collidable_round1(words_new, extra=False)
-    assert_collidable_round2_a5(words_new)
-    assert_collidable_round2_d5(words_new, d5i)
+    if check:
+        assert_collidable_round1(words_new, extra=False)
+        assert_collidable_round2_a5(words_new)
+        assert_collidable_round2_d5(words_new, d5i)
 
     return words_new
 
-def flip_c5_bit(X, c5i):
+def flip_c5_bit(X, c5i, check=True):
     s0 = md4.INITIAL_STATE
     [s1, s2, s3, s4] = md4.do_round1(X, s0)
 
@@ -705,6 +715,9 @@ def flip_c5_bit(X, c5i):
 
     s2_new = [s2[0], a2_new, s2[2], d2_new]
     X_new = invert_round1(s0, [s1, s2_new, s3, s4])
+
+    if not check:
+        return X_new
 
     for i in list(range(0, 4)) + list(range(12, 16)):
         assert_word_eq(X_new[i], X[i])
@@ -750,10 +763,11 @@ def test_flip_c5_bit():
 
             assert_collidable_round1(X_new, extra=False)
 
-def do_c5_mod(words, c5i, b):
-    assert_collidable_round1(words, extra=False)
-    assert_collidable_round2_a5(words)
-    assert_collidable_round2_d5(words)
+def do_c5_mod(words, c5i, b, check=True):
+    if check:
+        assert_collidable_round1(words, extra=False)
+        assert_collidable_round2_a5(words)
+        assert_collidable_round2_d5(words)
 
     round1_states = md4.do_round1(words)
     round2_states = md4.do_round2(words, round1_states[-1])
@@ -762,61 +776,65 @@ def do_c5_mod(words, c5i, b):
     if nth_bit(c5, c5i) == b:
         return words
 
-    words_new = flip_c5_bit(words, c5i)
+    words_new = flip_c5_bit(words, c5i, check)
 
-    assert_collidable_round1(words_new, extra=False)
-    assert_collidable_round2_a5(words_new)
-    assert_collidable_round2_d5(words_new)
-    assert_collidable_round2_c5(words_new, c5i)
+    if check:
+        assert_collidable_round1(words_new, extra=False)
+        assert_collidable_round2_a5(words_new)
+        assert_collidable_round2_d5(words_new)
+        assert_collidable_round2_c5(words_new, c5i)
 
     return words_new
 
-def do_multi_step_mod(words):
+def do_multi_step_mod(words, check=True):
     round1_states = md4.do_round1(words)
     _, _, _, c4 = round1_states[-1]
 
-    words = do_a5_mod(words, 18, nth_bit(c4, 18))
-    words = do_a5_mod(words, 25, 1)
-    words = do_a5_mod(words, 26, 0)
-    words = do_a5_mod(words, 28, 1)
-    words = do_a5_mod(words, 31, 1)
+    words = do_a5_mod(words, 18, nth_bit(c4, 18), check)
+    words = do_a5_mod(words, 25, 1, check)
+    words = do_a5_mod(words, 26, 0, check)
+    words = do_a5_mod(words, 28, 1, check)
+    words = do_a5_mod(words, 31, 1, check)
 
-    assert_collidable_round1(words, extra=False)
-    assert_collidable_round2_a5(words)
-
-    round1_states = md4.do_round1(words)
-    _, b4, _, _ = round1_states[-1]
-    round2_states = md4.do_round2(words, round1_states[-1])
-    a5, b5, c5, d5 = round2_states[0]
-
-    words = do_d5_mod(words, 18, nth_bit(a5, 18))
-    words = do_d5_mod(words, 25, nth_bit(b4, 25))
-    words = do_d5_mod(words, 26, nth_bit(b4, 26))
-    words = do_d5_mod(words, 28, nth_bit(b4, 28))
-
-    assert_collidable_round1(words, extra=False)
-    assert_collidable_round2_a5(words)
-    assert_collidable_round2_d5(words)
+    if check:
+        assert_collidable_round1(words, extra=False)
+        assert_collidable_round2_a5(words)
 
     round1_states = md4.do_round1(words)
     _, b4, _, _ = round1_states[-1]
     round2_states = md4.do_round2(words, round1_states[-1])
     a5, b5, c5, d5 = round2_states[0]
 
-    words = do_c5_mod(words, 25, nth_bit(d5, 25))
-    words = do_c5_mod(words, 26, nth_bit(d5, 26))
+    words = do_d5_mod(words, 18, nth_bit(a5, 18), check)
+    words = do_d5_mod(words, 25, nth_bit(b4, 25), check)
+    words = do_d5_mod(words, 26, nth_bit(b4, 26), check)
+    words = do_d5_mod(words, 28, nth_bit(b4, 28), check)
+
+    if check:
+        assert_collidable_round1(words, extra=False)
+        assert_collidable_round2_a5(words)
+        assert_collidable_round2_d5(words)
+
+    round1_states = md4.do_round1(words)
+    _, b4, _, _ = round1_states[-1]
+    round2_states = md4.do_round2(words, round1_states[-1])
+    a5, b5, c5, d5 = round2_states[0]
+
+    words = do_c5_mod(words, 25, nth_bit(d5, 25), check)
+    words = do_c5_mod(words, 26, nth_bit(d5, 26), check)
     # skip 28 for now
-    # words = do_c5_mod(words, 28, nth_bit(d5, 28))
-    words = do_c5_mod(words, 31, nth_bit(d5, 31))
+    # words = do_c5_mod(words, 28, nth_bit(d5, 28), check)
+    words = do_c5_mod(words, 31, nth_bit(d5, 31), check)
 
-    assert_collidable_round1(words, extra=False)
-    assert_collidable_round2_a5(words)
-    assert_collidable_round2_d5(words)
-    assert_collidable_round2_c5(words)
+    if check:
+        assert_collidable_round1(words, extra=False)
+        assert_collidable_round2_a5(words)
+        assert_collidable_round2_d5(words)
+        assert_collidable_round2_c5(words)
 
     return words
 
-def tweak_and_test(words, verbose=False):
+def tweak_and_test(words, verbose=False, check=True):
     if verbose:
         print('s before tweaking = {}'.format(write_words_be(words)))
 
@@ -828,7 +846,7 @@ def tweak_and_test(words, verbose=False):
         s = write_words_be(words)
         print('s after tweaking for round 1 = {}'.format(s))
 
-    words = do_multi_step_mod(words)
+    words = do_multi_step_mod(words, check)
 
     if verbose:
         s = write_words_be(words)
@@ -882,7 +900,7 @@ def find_collision(n):
             print('Iteration {}/{}, {} iterations in {}s, skip2={}, skip3={}, hash mismatch={}'.format(i + 1, n, interval, end - start, skip2_count, skip3_count, hash_mismatch_count))
             start = end
         words = randX()
-        result = tweak_and_test(words)
+        result = tweak_and_test(words, check=False)
 
         if result == 'skip2':
             skip2_count += 1
