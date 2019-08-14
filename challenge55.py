@@ -3,6 +3,7 @@ import md4
 import struct
 import util
 from util import lrot32, rrot32
+import time
 
 def md4_hexdigest(m, msglen=None):
     md4obj = md4.md4()
@@ -878,9 +879,13 @@ def find_collision(n):
     skip2_count = 0
     skip3_count = 0
     hash_mismatch_count = 0
+    start = time.perf_counter()
+    interval = 1000
     for i in range(n):
-        if i % 1000 == 0:
-            print('Iteration {}/{}, skip2={}, skip3={}, hash mismatch={}'.format(i + 1, n, skip2_count, skip3_count, hash_mismatch_count))
+        if i > 0 and (i + 1) % interval == 0:
+            end = time.perf_counter()
+            print('Iteration {}/{}, {} iterations in {}s, skip2={}, skip3={}, hash mismatch={}'.format(i + 1, n, interval, end - start, skip2_count, skip3_count, hash_mismatch_count))
+            start = end
         words = randX()
         result = tweak_and_test(words)
 
