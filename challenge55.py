@@ -824,6 +824,21 @@ def tweak_and_test(words, verbose=False):
     if verbose:
         print('s after tweaking for round 2 = {}'.format(s))
 
+    assert_collidable_round1(s, extra=False)
+    try:
+        assert_collidable_round2(s)
+    except Exception as e:
+        if verbose:
+            print('got exception (r2), e = {} returning'.format(e))
+        return 'skip2'
+
+    try:
+        assert_collidable_round3(s)
+    except Exception as e:
+        if verbose:
+            print('got exception (r3), e = {} returning'.format(e))
+        return 'skip3'
+
     apply_collision_differential(words)
     s_prime = write_words_be(words)
 
@@ -838,15 +853,26 @@ def tweak_and_test(words, verbose=False):
     else:
         if verbose:
             print('md4 {} != {}'.format(h, h_prime))
-        return None
+        return 'hashmismatch'
 
 def find_collision(n):
+    skip2_count = 0
+    skip3_count = 0
+    hash_mismatch_count = 0
     for i in range(n):
         if i % 1000 == 0:
-            print('Iteration {}/{}'.format(i + 1, n))
+            print('Iteration {}/{}, skip2={}, skip3={}, hash mismatch={}'.format(i + 1, n, skip2_count, skip3_count, hash_mismatch_count))
         words = randX()
         result = tweak_and_test(words)
-        if result:
+
+        if result == 'skip2':
+            skip2_count += 1
+        elif result == 'skip3':
+            skip3_count += 1
+        elif result == 'hashmismatch':
+            hash_mismatch_count += 1
+        else:
+            print('got result {}'.format(result))
             break
 
 if __name__ == '__main__':
@@ -860,4 +886,4 @@ if __name__ == '__main__':
     words = [0] * 16
     tweak_and_test(words, True)
 
-    find_collision(10000)
+    find_collision(1000000)
