@@ -883,7 +883,7 @@ def find_collision(n):
             hash_mismatch_count += 1
         else:
             s, s_prime = result
-            print('got result {:x} {:x}'.format(s, s_prime))
+            print('got result {} {}'.format(s, s_prime))
             break
 
 if __name__ == '__main__':
