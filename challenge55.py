@@ -651,7 +651,6 @@ def do_d5_mod(words, d5i, b):
         return words
 
     words_new = flip_d5_bit(words, d5i)
-#    words_new = do_single_step_mod(words_new)
 
     s = write_words_be(words_new)
     assert_collidable_round1(s, extra=True)
@@ -846,6 +845,6 @@ if __name__ == '__main__':
 #    test_flip_c5_bit()
 
     words = [0] * 16
-#    tweak_and_test(words, True)
+    tweak_and_test(words, True)
 
 #    find_collision(10000)
