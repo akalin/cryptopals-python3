@@ -307,6 +307,8 @@ def assert_collidable_round2(s):
     a5, b5, c5, d5 = round2_states[0]
     a6, b6, c6, d6 = round2_states[1]
 
+    assert_bit(d5, 31, nth_bit(d5, 31))
+
     assert_bit(c5, 28, nth_bit(d5, 28))
     assert_bit(c5, 29, nth_bit(d5, 29))
 
@@ -823,7 +825,7 @@ def tweak_and_test(words, verbose=False):
     assert_bit(b1, 19, 0)
 
     s = write_words_be(words)
-    assert_collidable_round1(s, extra=False)
+    assert_collidable_round1(s, extra=True)
 
     if verbose:
         print('s after tweaking for round 1 = {}'.format(s))
@@ -849,17 +851,19 @@ def tweak_and_test(words, verbose=False):
             print('got exception (r3), e = {} returning'.format(e))
         return 'skip3'
 
+    b = words_to_bytes_le(words)
+
     apply_collision_differential(words)
-    s_prime = write_words_be(words)
+    b_prime = words_to_bytes_le(words)
 
     if verbose:
-        print('s\' = {}'.format(s_prime))
+        print('b = {}, b\' = {}'.format(b, b_prime))
 
-    h = md4_hexdigest(bytes(s, 'ascii'))
-    h_prime = md4_hexdigest(bytes(s_prime, 'ascii'))
+    h = md4_hexdigest(b)
+    h_prime = md4_hexdigest(b_prime)
     if h == h_prime:
         print('md4 {} == {}'.format(h, h_prime))
-        return (s, s_prime)
+        return (b, b_prime)
     else:
         if verbose:
             print('md4 {} != {}'.format(h, h_prime))
