@@ -84,7 +84,7 @@ def nth_bit(x, n):
 def assert_bit(x, n, expected_b):
     b = nth_bit(x, n)
     if b != expected_b:
-        raise Exception('expected {:02x}[{}]={}, got {}'.format(x, n, expected_b, b))
+        raise Exception('expected {:x}[{}]={}, got {}'.format(x, n, expected_b, b))
 
 def assert_collidable_round1(s, extra=False):
     words = read_words_be(s)
@@ -532,41 +532,28 @@ def do_single_step_mod(words, extra=True):
     return invert_round1(s0, [s1, s2, s3, s4])
 
 def dump_s(s):
-    return '[{:02x} {:02x} {:02x} {:02x}]'.format(s[0], s[1], s[2], s[3])
+    return '[{:x} {:x} {:x} {:x}]'.format(s[0], s[1], s[2], s[3])
 
 def flip_nth_bit(x, n):
     return set_nth_bit(x, n, 1 - nth_bit(x, n))
 
 def assert_word_eq(expected, actual):
     if actual != expected:
-        raise Exception('expected {:02x}, got {:02x}'.format(expected, actual))
+        raise Exception('expected {:x}, got {:x}'.format(expected, actual))
 
 def flip_a5_bit(X, a5i):
-    X_new = list(X)
-    delta = 1 if nth_bit(X_new[0], a5i - 3) == 0 else -1
-    X_new[0] = flip_nth_bit(X_new[0], a5i - 3)
-
     s0 = md4.INITIAL_STATE
     [s1, s2, s3, s4] = md4.do_round1(X, s0)
 
     a1, _, _, _ = s1
+    # a5i - 3 + 3
     a1_new = flip_nth_bit(a1, a5i)
 
-    a1_new2 = lrot32((s0[0] + md4.F(s0[1], s0[2], s0[3]) + X_new[0]), 3)
-    assert_word_eq(a1_new2, a1_new)
-
     s1_new = [a1_new, s1[1], s1[2], s1[3]]
-    Y = invert_round1(s0, [s1_new, s2, s3, s4])
-
-    assert_word_eq(X_new[0], Y[0])
-
-    X_new[1] = Y[1]
-    X_new[2] = Y[2]
-    X_new[3] = Y[3]
-    X_new[4] = Y[4]
+    X_new = invert_round1(s0, [s1_new, s2, s3, s4])
 
     for i in range(5, 16):
-        assert_word_eq(X_new[i], Y[i])
+        assert_word_eq(X_new[i], X[i])
 
     round1_states_new = md4.do_round1(X_new, s0)
     expected_round1_states = [s1_new, s2, s3, s4]
@@ -578,10 +565,10 @@ def flip_a5_bit(X, a5i):
 
     [s5, s6, s7, s8] = md4.do_round2(X, s4)
     expected_round1_states = [round2_states_new[0], s6, s7, s8]
-    a5_new2, _, _, _ = round2_states_new[0]
+    a5_new, _, _, _ = round2_states_new[0]
 
     a5, _, _, _ = s5
-    if nth_bit(a5_new2, a5i) == nth_bit(a5, a5i):
+    if nth_bit(a5_new, a5i) == nth_bit(a5, a5i):
         raise Exception('a5 bit {} not flipped'.format(a5i))
 
     return X_new
@@ -614,45 +601,18 @@ def do_a5_mod(words, a5i, b):
 def flip_d5_bit(X, d5i):
     s0 = md4.INITIAL_STATE
     [s1, s2, s3, s4] = md4.do_round1(X, s0)
-    [s5, s6, s7, s8] = md4.do_round2(X, s4)
-
-    _, _, _, d5 = s5
-    delta = 1 if nth_bit(d5, d5i) == 0 else -1
-
-    X_new = list(X)
-    X_new[4] = (X[4] + delta * (1 << (d5i - 5))) & 0xffffffff
-
-    d5_new = flip_nth_bit(d5, d5i)
-    expected_X_new_4 = (rrot32(d5_new, 5) - s4[3] - md4.G(s5[0], s4[1], s4[2]) - md4.ROUND2_K) & 0xffffffff
-    assert_word_eq(expected_X_new_4, X_new[4])
-
-    d5_new2 = lrot32((s4[3] + md4.G(s5[0], s4[1], s4[2]) + X_new[4] + md4.ROUND2_K), 5)
-    assert_word_eq(d5_new2, d5_new)
-
-    # investigate shift for d5i - 2?
-
-    [_, [a2_new, _, _, _], _, _] = md4.do_round1(X_new, s0)
 
     a2, _, _, _ = s2
-
-    print('a2 is {:02x} => {:02x}, {:02x}'.format(a2, a2_new, a2 - a2_new))
+    # d5i - 5 + 3
+    a2_new = flip_nth_bit(a2, d5i - 2)
 
     s2_new = [a2_new, s2[1], s2[2], s2[3]]
-    Y = invert_round1(s0, [s1, s2_new, s3, s4])
+    X_new = invert_round1(s0, [s1, s2_new, s3, s4])
 
-    for i in range(0, 4):
-        assert_word_eq(X_new[i], Y[i])
+    delta = X[4] ^ X_new[4]
 
-    if X_new[4] != Y[4]:
-        raise Exception('expected {:02x}, got {:02x}'.format(X_new[4], Y[4]))
-
-    X_new[5] = Y[5]
-    X_new[6] = Y[6]
-    X_new[7] = Y[7]
-    X_new[8] = Y[8]
-
-    for i in range(9, 16):
-        assert_word_eq(X_new[i], Y[i])
+    for i in list(range(0, 4)) + list(range(9, 16)):
+        assert_word_eq(X_new[i], X[i])
 
     round1_states_new = md4.do_round1(X_new, s0)
     expected_round1_states = [s1, s2_new, s3, s4]
@@ -661,9 +621,14 @@ def flip_d5_bit(X, d5i):
             raise Exception('expected s[{}]={}, got {}'.format(i, dump_s(expected_round1_states[i]), dump_s(round1_states_new[i])))
 
     round2_states_new = md4.do_round2(X_new, round1_states_new[-1])
+
+    [s5, s6, s7, s8] = md4.do_round2(X, s4)
     expected_round1_states = [round2_states_new[0], s6, s7, s8]
-    _, _, _, d5_new2 = round2_states_new[0]
-    assert_word_eq(d5_new2, d5_new)
+    _, _, _, d5_new = round2_states_new[0]
+
+    _, _, _, d5 = s5
+    if nth_bit(d5_new, d5i) == nth_bit(d5, d5i):
+        raise Exception('d5 bit {} not flipped'.format(d5i))
 
     return X_new
 
@@ -672,8 +637,6 @@ def test_flip_d5_bit():
         X = randX()
         for d5i in [18, 25, 26, 28]:
             flip_d5_bit(X, d5i)
-
-        s = write_words_be(X)
 
 def do_d5_mod(words, d5i, b):
     s = write_words_be(words)
@@ -879,7 +842,7 @@ if __name__ == '__main__':
     test_collision()
     test_invert_round1()
     test_flip_a5_bit()
-#    test_flip_d5_bit()
+    test_flip_d5_bit()
 #    test_flip_c5_bit()
 
     words = [0] * 16
