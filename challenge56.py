@@ -61,5 +61,5 @@ def recover_plaintext(iter_length, num_iters):
 
     return plaintext
 
-plaintext = recover_plaintext(1 << 15, 1 << 15)
+plaintext = recover_plaintext(1 << 14, 1 << 18)
 print('final plaintext = {}'.format(bytes(plaintext)))
