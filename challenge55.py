@@ -853,7 +853,7 @@ def tweak_and_test(words, verbose=False):
     s_prime = write_words_be(words_prime)
 
     if verbose:
-        print('b = {}, b\' = {}'.format(s, s_prime))
+        print('s = {}, s\' = {}'.format(s, s_prime))
 
     h = md4_hexdigest(b)
     h_prime = md4_hexdigest(b_prime)
@@ -883,7 +883,7 @@ def find_collision(n):
             hash_mismatch_count += 1
         else:
             s, s_prime = result
-            print('got result {} {}'.format(s, s_prime))
+            print('got result s={} s\'={}'.format(s, s_prime))
             break
 
 if __name__ == '__main__':
