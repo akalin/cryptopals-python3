@@ -668,7 +668,7 @@ def test_flip_d5_bit():
         for d5i in [18, 25, 26, 28]:
             X_new = flip_d5_bit(X_new, d5i)
 
-            assert_collidable_round1(X_new, extra=True)
+            assert_collidable_round1(X_new, extra=False)
 
 def do_d5_mod(words, d5i, b):
     assert_collidable_round1(words, extra=False)
@@ -900,7 +900,7 @@ if __name__ == '__main__':
     test_collision()
     test_invert_round1()
     test_flip_a5_bit()
-#    test_flip_d5_bit()
+    test_flip_d5_bit()
     test_flip_c5_bit()
 
     words = [0] * 16
