@@ -840,7 +840,8 @@ def tweak_and_test(words, verbose=False, check=True):
 
     words = do_single_step_mod(words, extra=True)
 
-    assert_collidable_round1(words, extra=True)
+    if check:
+        assert_collidable_round1(words, extra=True)
 
     if verbose:
         s = write_words_be(words)
@@ -852,7 +853,9 @@ def tweak_and_test(words, verbose=False, check=True):
         s = write_words_be(words)
         print('s after tweaking for round 2 = {}'.format(s))
 
-    assert_collidable_round1(words, extra=False)
+    if check:
+        assert_collidable_round1(words, extra=False)
+
     try:
         assert_collidable_round2(words)
     except Exception as e:
