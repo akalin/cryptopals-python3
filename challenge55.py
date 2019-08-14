@@ -302,10 +302,6 @@ def assert_collidable_round2_c5(words, c5i=False):
         assert_bit(c5, 31, nth_bit(d5, 31))
 
 def assert_collidable_round2(words):
-    assert_collidable_round2_a5(words)
-    assert_collidable_round2_d5(words)
-    assert_collidable_round2_c5(words)
-
     round1_states = md4.do_round1(words)
     a4, b4, c4, d4 = round1_states[-1]
 
@@ -313,23 +309,36 @@ def assert_collidable_round2(words):
     a5, b5, c5, d5 = round2_states[0]
     a6, b6, c6, d6 = round2_states[1]
 
-    assert_bit(d5, 31, nth_bit(d5, 31))
+    assert_bit1(a5, 19, c4, 19)
+    assert_bit1(a5, 26, 1)
+    assert_bit1(a5, 27, 0)
+    assert_bit1(a5, 29, 1)
+    assert_bit1(a5, 32, 1)
 
-    assert_bit(c5, 28, nth_bit(d5, 28))
-    assert_bit(c5, 29, nth_bit(d5, 29))
+    assert_bit1(d5, 19, a5, 19)
+    assert_bit1(d5, 26, b4, 26)
+    assert_bit1(d5, 27, b4, 27)
+    assert_bit1(d5, 29, b4, 29)
+    assert_bit1(d5, 32, b4, 32)
 
-    assert_bit(b5, 28, nth_bit(c5, 28))
-    assert_bit(b5, 29, 1)
-    assert_bit(b5, 31, 0)
+    assert_bit1(c5, 26, d5, 26)
+    assert_bit1(c5, 27, d5, 27)
+    assert_bit1(c5, 29, d5, 29)
+    assert_bit1(c5, 30, d5, 30)
+    assert_bit1(c5, 32, d5, 32)
 
-    assert_bit(a6, 28, 1)
-    assert_bit(a6, 31, 1)
+    assert_bit1(b5, 29, c5, 29)
+    assert_bit1(b5, 30, 1)
+    assert_bit1(b5, 32, 0)
 
-    assert_bit(d6, 28, nth_bit(b5, 28))
+    assert_bit1(a6, 29, 1)
+    assert_bit1(a6, 32, 1)
 
-    assert_bit(c6, 28, nth_bit(d6, 28))
-    assert_bit(c6, 29, (nth_bit(d6, 29) + 1) % 2)
-    assert_bit(c6, 31, (nth_bit(d6, 31) + 1) % 2)
+    assert_bit1(d6, 29, b5, 29)
+
+    assert_bit1(c6, 29, d6, 29)
+    assert_bit1(c6, 30, (1 + nth_bit(d6, 30 - 1)) % 2)
+    assert_bit1(c6, 32, (1 + nth_bit(d6, 32 - 1)) % 2)
 
 def assert_collidable_round3(words):
     round1_states = md4.do_round1(words)
@@ -338,8 +347,8 @@ def assert_collidable_round3(words):
     _, b9, _, _ = round3_states[0]
     a10, _, _, _ = round3_states[1]
 
-    assert_bit(b9, 31, 1)
-    assert_bit(a10, 31, 1)
+    assert_bit1(b9, 32, 1)
+    assert_bit1(a10, 32, 1)
 
 def test_collision():
     words_M1 = read_words_be(collision_M1_str)
