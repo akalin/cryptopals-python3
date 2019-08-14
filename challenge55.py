@@ -64,9 +64,11 @@ def assert_md4_state(b, expected_state_str, expected_hash_str):
         raise Exception('expected {}, got {}'.format(expected_h, h))
 
 def apply_collision_differential(words):
-    words[1] = (words[1] + 2**31) % 2**32
-    words[2] = (words[2] + 2**31 - 2**28) % 2**32
-    words[12] = (words[12] - 2**16) % 2**32
+    words_new = list(words)
+    words_new[1] = (words[1] + 2**31) % 2**32
+    words_new[2] = (words[2] + 2**31 - 2**28) % 2**32
+    words_new[12] = (words[12] - 2**16) % 2**32
+    return words_new
 
 def assert_collision(s, expected_state_str, expected_hash_str):
     words = read_words_be(s)
@@ -85,6 +87,19 @@ def assert_bit(x, n, expected_b):
     b = nth_bit(x, n)
     if b != expected_b:
         raise Exception('expected {:x}[{}]={}, got {}'.format(x, n, expected_b, b))
+
+def assert_bit1(x, n, a3, a4=None):
+    if a4 is None:
+        expected_b = a3
+    else:
+        expected_b = nth_bit(a3, a4 - 1)
+
+    b = nth_bit(x, n - 1)
+    if b != expected_b:
+        if a4 is None:
+            raise Exception('expected {:x}_{}={}, got {}'.format(x, n, expected_b, b))
+        else:
+            raise Exception('expected {:x}_{}={:x}_{}={}, got {}'.format(x, n, a3, a4, expected_b, b))
 
 def assert_collidable_round1(words, extra=False):
     a0, b0, c0, d0 = md4.INITIAL_STATE
@@ -830,17 +845,20 @@ def tweak_and_test(words, verbose=False):
 
     b = words_to_bytes_le(words)
 
-    apply_collision_differential(words)
-    b_prime = words_to_bytes_le(words)
+    words_prime = apply_collision_differential(words)
+    b_prime = words_to_bytes_le(words_prime)
+
+    s = write_words_be(words)
+    s_prime = write_words_be(words_prime)
 
     if verbose:
-        print('b = {}, b\' = {}'.format(b, b_prime))
+        print('b = {}, b\' = {}'.format(s, s_prime))
 
     h = md4_hexdigest(b)
     h_prime = md4_hexdigest(b_prime)
     if h == h_prime:
         print('md4 {} == {}'.format(h, h_prime))
-        return (b, b_prime)
+        return (s, s_prime)
     else:
         if verbose:
             print('md4 {} != {}'.format(h, h_prime))
@@ -863,7 +881,8 @@ def find_collision(n):
         elif result == 'hashmismatch':
             hash_mismatch_count += 1
         else:
-            print('got result {}'.format(result))
+            b, b_prime = result
+            print('got result {:x} {:x}'.format(s, s_prime))
             break
 
 if __name__ == '__main__':
