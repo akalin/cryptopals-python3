@@ -240,6 +240,8 @@ def assert_collidable_round1(words, extra=False):
     assert_bit1(b4, 27, 1)
     assert_bit1(b4, 29, 1)
     assert_bit1(b4, 30, 0)
+    # From https://eprint.iacr.org/2005/151.pdf .
+    assert_bit1(b4, 32, c4, 32)
 
 def assert_collidable_round2_a5(words, a5i=None):
     round1_states = md4.do_round1(words)
@@ -334,6 +336,9 @@ def assert_collidable_round2(words):
 
     assert_bit1(a6, 29, 1)
     assert_bit1(a6, 32, 1)
+
+    # From https://eprint.iacr.org/2005/151.pdf
+    assert_bit1(a6, 30, 0)
 
     assert_bit1(d6, 29, b5, 29)
 
@@ -549,6 +554,9 @@ def do_single_step_mod(words, extra=True):
     b4 = set_nth_bit(b4, 26, 1)
     b4 = set_nth_bit(b4, 28, 1)
     b4 = set_nth_bit(b4, 29, 0)
+
+    # From https://eprint.iacr.org/2005/151.pdf
+    b4 = set_nth_bit(b4, 31, nth_bit(c4, 31))
 
     s0 = [a0, b0, c0, d0]
     s1 = [a1, b1, c1, d1]
