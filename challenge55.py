@@ -86,9 +86,7 @@ def assert_bit(x, n, expected_b):
     if b != expected_b:
         raise Exception('expected {:x}[{}]={}, got {}'.format(x, n, expected_b, b))
 
-def assert_collidable_round1(s, extra=False):
-    words = read_words_be(s)
-
+def assert_collidable_round1(words, extra=False):
     a0, b0, c0, d0 = md4.INITIAL_STATE
     states = md4.do_round1(words)
     a1, b1, c1, d1 = states[0]
@@ -226,9 +224,7 @@ def assert_collidable_round1(s, extra=False):
     assert_bit(b4, 28, 1)
     assert_bit(b4, 29, 0)
 
-def assert_collidable_round2_a5(s, a5i=None):
-    words = read_words_be(s)
-
+def assert_collidable_round2_a5(words, a5i=None):
     round1_states = md4.do_round1(words)
     a4, b4, c4, d4 = round1_states[-1]
 
@@ -250,9 +246,7 @@ def assert_collidable_round2_a5(s, a5i=None):
     if a5i is None or a5i >= 31:
         assert_bit(a5, 31, 1)
 
-def assert_collidable_round2_d5(s, d5i=None):
-    words = read_words_be(s)
-
+def assert_collidable_round2_d5(words, d5i=None):
     round1_states = md4.do_round1(words)
     a4, b4, c4, d4 = round1_states[-1]
 
@@ -271,9 +265,7 @@ def assert_collidable_round2_d5(s, d5i=None):
     if d5i is None or d5i >= 28:
         assert_bit(d5, 28, nth_bit(b4, 28))
 
-def assert_collidable_round2_c5(s, c5i=False):
-    words = read_words_be(s)
-
+def assert_collidable_round2_c5(words, c5i=False):
     round1_states = md4.do_round1(words)
     a4, b4, c4, d4 = round1_states[-1]
 
@@ -293,12 +285,10 @@ def assert_collidable_round2_c5(s, c5i=False):
     if c5i is None or c5i >= 31:
         assert_bit(c5, 31, nth_bit(d5, 31))
 
-def assert_collidable_round2(s):
-    words = read_words_be(s)
-
-    assert_collidable_round2_a5(s)
-    assert_collidable_round2_d5(s)
-    assert_collidable_round2_c5(s)
+def assert_collidable_round2(words):
+    assert_collidable_round2_a5(words)
+    assert_collidable_round2_d5(words)
+    assert_collidable_round2_c5(words)
 
     round1_states = md4.do_round1(words)
     a4, b4, c4, d4 = round1_states[-1]
@@ -325,9 +315,7 @@ def assert_collidable_round2(s):
     assert_bit(c6, 29, (nth_bit(d6, 29) + 1) % 2)
     assert_bit(c6, 31, (nth_bit(d6, 31) + 1) % 2)
 
-def assert_collidable_round3(s):
-    words = read_words_be(s)
-
+def assert_collidable_round3(words):
     round1_states = md4.do_round1(words)
     round2_states = md4.do_round2(words, round1_states[-1])
     round3_states = md4.do_round3(words, round2_states[-1])
@@ -338,14 +326,16 @@ def assert_collidable_round3(s):
     assert_bit(a10, 31, 1)
 
 def test_collision():
-    assert_collidable_round1(collision_M1_str)
-    assert_collidable_round1(collision_M2_str)
+    words_M1 = read_words_be(collision_M1_str)
+    words_M2 = read_words_be(collision_M2_str)
+    assert_collidable_round1(words_M1)
+    assert_collidable_round1(words_M2)
 
-    assert_collidable_round2(collision_M1_str)
-    assert_collidable_round2(collision_M2_str)
+    assert_collidable_round2(words_M1)
+    assert_collidable_round2(words_M2)
 
-    assert_collidable_round3(collision_M1_str)
-    assert_collidable_round3(collision_M2_str)
+    assert_collidable_round3(words_M1)
+    assert_collidable_round3(words_M2)
 
     assert_collision(collision_M1_str, collision_state1_str, collision_hash1_str)
     assert_collision(collision_M2_str, collision_state2_str, collision_hash2_str)
@@ -593,12 +583,10 @@ def test_flip_a5_bit():
         for a5i in [18, 25, 26, 28, 31]:
             X_new = flip_a5_bit(X_new, a5i)
 
-            s = write_words_be(X_new)
-            assert_collidable_round1(s, extra=False)
+            assert_collidable_round1(X_new, extra=False)
 
 def do_a5_mod(words, a5i, b):
-    s = write_words_be(words)
-    assert_collidable_round1(s, extra=False)
+    assert_collidable_round1(words, extra=False)
 
     round1_states = md4.do_round1(words)
     round2_states = md4.do_round2(words, round1_states[-1])
@@ -609,9 +597,8 @@ def do_a5_mod(words, a5i, b):
 
     words_new = flip_a5_bit(words, a5i)
 
-    s = write_words_be(words_new)
-    assert_collidable_round1(s, extra=False)
-    assert_collidable_round2_a5(s, a5i)
+    assert_collidable_round1(words_new, extra=False)
+    assert_collidable_round2_a5(words_new, a5i)
 
     return words_new
 
@@ -656,13 +643,11 @@ def test_flip_d5_bit():
         for d5i in [18, 25, 26, 28]:
             X_new = flip_d5_bit(X_new, d5i)
 
-            s = write_words_be(X_new)
-            assert_collidable_round1(s, extra=True)
+            assert_collidable_round1(X_new, extra=True)
 
 def do_d5_mod(words, d5i, b):
-    s = write_words_be(words)
-    assert_collidable_round1(s, extra=False)
-    assert_collidable_round2_a5(s)
+    assert_collidable_round1(words, extra=False)
+    assert_collidable_round2_a5(words)
 
     round1_states = md4.do_round1(words)
     round2_states = md4.do_round2(words, round1_states[-1])
@@ -673,10 +658,9 @@ def do_d5_mod(words, d5i, b):
 
     words_new = flip_d5_bit(words, d5i)
 
-    s = write_words_be(words_new)
-    assert_collidable_round1(s, extra=False)
-    assert_collidable_round2_a5(s)
-    assert_collidable_round2_d5(s, d5i)
+    assert_collidable_round1(words_new, extra=False)
+    assert_collidable_round2_a5(words_new)
+    assert_collidable_round2_d5(words_new, d5i)
 
     return words_new
 
@@ -732,21 +716,18 @@ def test_flip_c5_bit():
         for d5i in [18, 25, 26, 28]:
             X_new = flip_d5_bit(X_new, d5i)
 
-            s = write_words_be(X_new)
-            assert_collidable_round1(s, extra=False)
+            assert_collidable_round1(X_new, extra=False)
 
         # skip 28 for now
         for c5i in [25, 26, 31]:
             X_new = flip_c5_bit(X_new, c5i)
 
-            s = write_words_be(X_new)
-            assert_collidable_round1(s, extra=False)
+            assert_collidable_round1(X_new, extra=False)
 
 def do_c5_mod(words, c5i, b):
-    s = write_words_be(words)
-    assert_collidable_round1(s, extra=False)
-    assert_collidable_round2_a5(s)
-    assert_collidable_round2_d5(s)
+    assert_collidable_round1(words, extra=False)
+    assert_collidable_round2_a5(words)
+    assert_collidable_round2_d5(words)
 
     round1_states = md4.do_round1(words)
     round2_states = md4.do_round2(words, round1_states[-1])
@@ -757,11 +738,10 @@ def do_c5_mod(words, c5i, b):
 
     words_new = flip_c5_bit(words, c5i)
 
-    s = write_words_be(words_new)
-    assert_collidable_round1(s, extra=False)
-    assert_collidable_round2_a5(s)
-    assert_collidable_round2_d5(s)
-    assert_collidable_round2_c5(s, c5i)
+    assert_collidable_round1(words_new, extra=False)
+    assert_collidable_round2_a5(words_new)
+    assert_collidable_round2_d5(words_new)
+    assert_collidable_round2_c5(words_new, c5i)
 
     return words_new
 
@@ -775,9 +755,8 @@ def do_multi_step_mod(words):
     words = do_a5_mod(words, 28, 1)
     words = do_a5_mod(words, 31, 1)
 
-    s = write_words_be(words)
-    assert_collidable_round1(s, extra=False)
-    assert_collidable_round2_a5(s)
+    assert_collidable_round1(words, extra=False)
+    assert_collidable_round2_a5(words)
 
     round1_states = md4.do_round1(words)
     _, b4, _, _ = round1_states[-1]
@@ -789,10 +768,9 @@ def do_multi_step_mod(words):
     words = do_d5_mod(words, 26, nth_bit(b4, 26))
     words = do_d5_mod(words, 28, nth_bit(b4, 28))
 
-    s = write_words_be(words)
-    assert_collidable_round1(s, extra=False)
-    assert_collidable_round2_a5(s)
-    assert_collidable_round2_d5(s)
+    assert_collidable_round1(words, extra=False)
+    assert_collidable_round2_a5(words)
+    assert_collidable_round2_d5(words)
 
     round1_states = md4.do_round1(words)
     _, b4, _, _ = round1_states[-1]
@@ -805,11 +783,10 @@ def do_multi_step_mod(words):
     # words = do_c5_mod(words, 28, nth_bit(d5, 28))
     words = do_c5_mod(words, 31, nth_bit(d5, 31))
 
-    s = write_words_be(words)
-    assert_collidable_round1(s, extra=False)
-    assert_collidable_round2_a5(s)
-    assert_collidable_round2_d5(s)
-    assert_collidable_round2_c5(s)
+    assert_collidable_round1(words, extra=False)
+    assert_collidable_round2_a5(words)
+    assert_collidable_round2_d5(words)
+    assert_collidable_round2_c5(words)
 
     return words
 
@@ -824,28 +801,28 @@ def tweak_and_test(words, verbose=False):
     a1, b1, c1, d1 = states[0]
     assert_bit(b1, 19, 0)
 
-    s = write_words_be(words)
-    assert_collidable_round1(s, extra=True)
+    assert_collidable_round1(words, extra=True)
 
     if verbose:
+        s = write_words_be(words)
         print('s after tweaking for round 1 = {}'.format(s))
 
     words = do_multi_step_mod(words)
 
-    s = write_words_be(words)
     if verbose:
+        s = write_words_be(words)
         print('s after tweaking for round 2 = {}'.format(s))
 
-    assert_collidable_round1(s, extra=False)
+    assert_collidable_round1(words, extra=False)
     try:
-        assert_collidable_round2(s)
+        assert_collidable_round2(words)
     except Exception as e:
         if verbose:
             print('got exception (r2), e = {} returning'.format(e))
         return 'skip2'
 
     try:
-        assert_collidable_round3(s)
+        assert_collidable_round3(words)
     except Exception as e:
         if verbose:
             print('got exception (r3), e = {} returning'.format(e))
