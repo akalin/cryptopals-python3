@@ -842,6 +842,10 @@ def do_multi_step_mod(words, check=True):
 
     return words
 
+def words_to_hex_string(words):
+    b = struct.pack('<16I', *words)
+    return binascii.hexlify(b).decode('ascii')
+
 def tweak_and_test(words, verbose=False, check=True):
     if verbose:
         print('s before tweaking = {}'.format(write_words_be(words)))
@@ -883,17 +887,16 @@ def tweak_and_test(words, verbose=False, check=True):
     words_prime = apply_collision_differential(words)
     b_prime = words_to_bytes_le(words_prime)
 
-    s = write_words_be(words)
-    s_prime = write_words_be(words_prime)
-
     if verbose:
+        s = words_to_hex_string(words)
+        s_prime = words_to_hex_string(words_prime)
         print('s = {}, s\' = {}'.format(s, s_prime))
 
     h = md4_hexdigest(b)
     h_prime = md4_hexdigest(b_prime)
     if h == h_prime:
         print('md4 {} == {}'.format(h, h_prime))
-        return (s, s_prime)
+        return (words, words_prime)
     else:
         if verbose:
             print('md4 {} != {}'.format(h, h_prime))
@@ -920,7 +923,9 @@ def find_collision(n):
         elif result == 'hashmismatch':
             hash_mismatch_count += 1
         else:
-            s, s_prime = result
+            words, words_prime = result
+            s = words_to_hex_string(words)
+            s_prime = words_to_hex_string(words_prime)
             print('got result s={} s\'={}'.format(s, s_prime))
             break
 
