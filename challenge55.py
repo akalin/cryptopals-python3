@@ -822,11 +822,6 @@ def tweak_and_test(words, verbose=False):
 
     words = do_single_step_mod(words, extra=True)
 
-    a0, b0, c0, d0 = md4.INITIAL_STATE
-    states = md4.do_round1(words)
-    a1, b1, c1, d1 = states[0]
-    assert_bit(b1, 19, 0)
-
     assert_collidable_round1(words, extra=True)
 
     if verbose:
