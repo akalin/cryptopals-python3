@@ -18,9 +18,10 @@ def add_to_pos_distributions(b, iter_length, pos_distributions):
         for pos, distribution in pos_distributions.items():
             distribution[ciphertext[pos]] += 1
 
+char_range = range(0, 256)
+
 def recover_plaintext_byte(distribution, bias):
-    cb = max(range(256), key=lambda i: distribution[i])
-    return cb ^ bias
+    return max(char_range, key=lambda i: distribution[i ^ bias])
 
 def recover_plaintext_iter(ciphertext_length, iter_length, paddings, pos_distribution_groups):
     plaintext = [0] * ciphertext_length
@@ -60,5 +61,5 @@ def recover_plaintext(iter_length, num_iters):
 
     return plaintext
 
-plaintext = recover_plaintext(1 << 15, 1 << 5)
+plaintext = recover_plaintext(1 << 15, 1 << 15)
 print('final plaintext = {}'.format(bytes(plaintext)))
