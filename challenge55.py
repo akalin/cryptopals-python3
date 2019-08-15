@@ -911,7 +911,7 @@ def find_collision(n):
     for i in range(n):
         if i > 0 and (i + 1) % interval == 0:
             end = time.perf_counter()
-            print('Iteration {}/{}, {} iterations in {}s, skip2={}, skip3={}, hash mismatch={}'.format(i + 1, n, interval, end - start, skip2_count, skip3_count, hash_mismatch_count))
+            print('Iteration {}/{}, {} iterations in {:.2f}s, skip2={}, skip3={}, hash mismatch={}'.format(i + 1, n, interval, end - start, skip2_count, skip3_count, hash_mismatch_count))
             start = end
         words = randX()
         result = tweak_and_test(words, check=False)
