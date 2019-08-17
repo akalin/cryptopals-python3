@@ -1,9 +1,9 @@
 from Crypto.Util.strxor import strxor
-from Crypto.Random import random
+from Crypto.Random import get_random_bytes
+from Crypto.Random.random import getrandbits, randint
 import challenge21
 import struct
 import time
-import util
 
 class MT19937Cipher:
     def __init__(self, key):
@@ -30,10 +30,10 @@ class MT19937Cipher:
     def decrypt(self, ciphertext):
         return self.encrypt(ciphertext)
 
-key = random.getrandbits(16)
+key = getrandbits(16)
 
 def encryption_oracle(plaintext):
-    prefix = util.randbytes(random.randint(4, 20))
+    prefix = get_random_bytes(randint(4, 20))
     cipher = MT19937Cipher(key)
     return cipher.encrypt(prefix + plaintext)
 
@@ -53,7 +53,7 @@ print(key, recover_key(encryption_oracle))
 def token_oracle():
     seed = int(time.time())
     cipher = MT19937Cipher(seed)
-    plaintext = b'0' * random.randint(4, 20)
+    plaintext = b'0' * randint(4, 20)
     return cipher.encrypt(plaintext)
 
 def is_token_for_current_time(token):

@@ -1,18 +1,19 @@
 from Crypto.Cipher import AES
-from Crypto.Random import random
+from Crypto.Random import get_random_bytes
+from Crypto.Random.random import randint
 import challenge10
 import util
 
 def encryption_oracle(s):
-    key = util.randbytes(16)
+    key = get_random_bytes(16)
     cipher = AES.new(key, AES.MODE_ECB)
-    if random.randint(0, 1) == 0:
+    if randint(0, 1) == 0:
         print('Encrypting with ECB')
     else:
         print('Encrypting with CBC')
-        IV = util.randbytes(16)
+        IV = get_random_bytes(16)
         cipher = challenge10.CBC(cipher, IV)
-    s = util.randbytes(random.randint(5, 10)) + s + util.randbytes(random.randint(5, 10))
+    s = get_random_bytes(randint(5, 10)) + s + get_random_bytes(randint(5, 10))
     s = util.padPKCS7(s, 16)
     return cipher.encrypt(s)
 

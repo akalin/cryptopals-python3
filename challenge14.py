@@ -1,5 +1,6 @@
 from Crypto.Cipher import AES
-from Crypto.Random import random
+from Crypto.Random import get_random_bytes
+from Crypto.Random.random import randint
 import base64
 import challenge12
 import util
@@ -11,11 +12,11 @@ def encryption_oracle(s):
     global key
     global prefix
     if key is None:
-        key = util.randbytes(16)
+        key = get_random_bytes(16)
     if prefix is None:
         # TODO(akalin): Extend to arbitrary sizes.
-        randcount = random.randint(16, 32)
-        prefix = util.randbytes(randcount)
+        randcount = randint(16, 32)
+        prefix = get_random_bytes(randcount)
     cipher = AES.new(key, AES.MODE_ECB)
     s = util.padPKCS7(prefix + s + base64.b64decode(challenge12.encodedSuffix), 16)
     return cipher.encrypt(s)

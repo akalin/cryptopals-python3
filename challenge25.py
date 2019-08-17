@@ -1,12 +1,12 @@
 from Crypto.Cipher import AES
-from Crypto.Random import random
+from Crypto.Random import get_random_bytes
+from Crypto.Random.random import getrandbits
 import challenge18
 import base64
 import struct
-import util
 
-key = util.randbytes(16)
-nonce = random.getrandbits(64)
+key = get_random_bytes(16)
+nonce = getrandbits(64)
 
 def ciphertext_oracle():
     ecb_ciphertext = base64.b64decode(open('25.txt', 'r').read())

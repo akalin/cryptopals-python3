@@ -1,9 +1,10 @@
 from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
 import challenge10
 import challenge15
 import util
 
-key = util.randbytes(16)
+key = get_random_bytes(16)
 
 def encryptParams(userdata):
     userdata = userdata.replace(';', '%3B').replace('=', '%3D')

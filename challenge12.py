@@ -1,4 +1,5 @@
 from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
 import base64
 import util
 
@@ -11,7 +12,7 @@ key = None
 def encryption_oracle(s):
     global key
     if key is None:
-        key = util.randbytes(16)
+        key = get_random_bytes(16)
     cipher = AES.new(key, AES.MODE_ECB)
     s = util.padPKCS7(s + base64.b64decode(encodedSuffix), 16)
     return cipher.encrypt(s)
@@ -27,7 +28,7 @@ def findBlockSize(encryption_oracle):
         i += 1
 
 def confirmECB(encryption_oracle, blocksize):
-    s = util.randbytes(blocksize) * 2
+    s = get_random_bytes(blocksize) * 2
     t = encryption_oracle(s)
     if t[0:blocksize] != t[blocksize:2*blocksize]:
         raise Exception('Not using ECB')

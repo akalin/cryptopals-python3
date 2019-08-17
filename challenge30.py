@@ -1,8 +1,8 @@
-from Crypto.Random import random
+from Crypto.Random import get_random_bytes
+from Crypto.Random.random import randint
 import challenge28
 import md4
 import struct
-import util
 
 def authMD4(key, message):
     md4obj = md4.md4()
@@ -16,8 +16,8 @@ def padMD4(s):
     s += struct.pack("<2I", l & 0xffffffff, (l>>32) & 0xffffffff)
     return s
 
-keylen = random.randint(0, 100)
-key = util.randbytes(keylen)
+keylen = randint(0, 100)
+key = get_random_bytes(keylen)
 
 def validate(message, digest):
     return authMD4(key, message) == digest

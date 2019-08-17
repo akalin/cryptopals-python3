@@ -1,4 +1,5 @@
 from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
 import util
 
 def encode_profile(profile):
@@ -20,7 +21,7 @@ def profile_for(email):
         ]
     return encode_profile(profile)
 
-key = util.randbytes(16)
+key = get_random_bytes(16)
 
 def encrypt_profile_for(email):
     cipher = AES.new(key, AES.MODE_ECB)

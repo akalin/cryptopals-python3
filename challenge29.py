@@ -1,7 +1,7 @@
-from Crypto.Random import random
+from Crypto.Random import get_random_bytes
+from Crypto.Random.random import randint
 import challenge28
 import struct
-import util
 
 def padSHA1(s):
     l = len(s) * 8
@@ -10,8 +10,8 @@ def padSHA1(s):
     s += struct.pack('>Q', l)
     return s
 
-keylen = random.randint(0, 100)
-key = util.randbytes(keylen)
+keylen = randint(0, 100)
+key = get_random_bytes(keylen)
 
 def validate(message, digest):
     return challenge28.authSHA1(key, message) == digest
