@@ -1,5 +1,4 @@
 import base64
-import challenge34_util
 import challenge36_util
 import socketserver
 import sys

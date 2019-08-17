@@ -1,51 +1,51 @@
 from Crypto.Random import random
-import challenge34_util
+import challenge34_shared
 import socketserver
 import sys
 
 class DiffieHellmanTCPHandler(socketserver.StreamRequestHandler):
     def handle(self):
-        util = challenge34_util.Util(self)
+        conn = challenge34_shared.Conn(self)
 
         print('S: reading p...')
-        p = util.readnum()
+        p = conn.readnum()
 
         print('S: reading g...')
-        g = util.readnum()
+        g = conn.readnum()
 
         print('S: writing p...')
-        util.writenum(p)
+        conn.writenum(p)
 
         print('S: writing g...')
-        util.writenum(g)
+        conn.writenum(g)
 
         print('S: reading A...')
-        A = util.readnum()
+        A = conn.readnum()
 
         b = random.randint(0, p)
         B = pow(g, b, p)
 
         print('S: writing B...')
-        util.writenum(B)
+        conn.writenum(B)
 
         s = pow(A, b, p)
-        key = util.derivekey(s)
+        key = challenge34_shared.derivekey(s)
 
         print('S: reading encrypted message...')
-        encryptedMessage = util.readbytes()
+        encrypted_message = conn.readbytes()
 
         print('S: reading iv...')
-        iv = util.readbytes()
+        iv = conn.readbytes()
 
-        message = util.decrypt(key, iv, encryptedMessage)
+        message = challenge34_shared.decrypt(key, iv, encrypted_message)
         print('S: message:', message)
 
-        encryptedMessage2 = util.encrypt(key, iv, message)
-        if encryptedMessage2 != encryptedMessage:
-            raise Exception(encryptedMessage2 + b' != ' + encryptedMessage)
+        encrypted_message2 = challenge34_shared.encrypt(key, iv, message)
+        if encrypted_message2 != encrypted_message:
+            raise Exception(encrypted_message2 + b' != ' + encrypted_message)
 
         print('S: writing encrypted message...')
-        util.writebytes(encryptedMessage2)
+        conn.writebytes(encrypted_message2)
 
 if __name__ == "__main__":
     host = sys.argv[1]

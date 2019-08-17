@@ -1,5 +1,5 @@
 from Crypto.Random import random
-import challenge34_util
+import challenge34_shared
 import socket
 import socketserver
 import sys
@@ -15,59 +15,59 @@ class AttackerTCPHandler(socketserver.StreamRequestHandler):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             sock.connect((targethost, targetport))
-            serverutil = challenge34_util.Util(sock)
-            clientutil = challenge34_util.Util(self)
+            serverconn = challenge34_shared.Conn(sock)
+            clientconn = challenge34_shared.Conn(self)
 
             print('C->A: reading p...')
-            p = clientutil.readnum()
+            p = clientconn.readnum()
 
             print('C->A: reading g...')
-            g = clientutil.readnum()
+            g = clientconn.readnum()
 
             print('C->A: reading A...')
-            A = clientutil.readnum()
+            A = clientconn.readnum()
 
             print('A->S: writing p...')
-            serverutil.writenum(p)
+            serverconn.writenum(p)
 
             print('A->S: writing g...')
-            serverutil.writenum(g)
+            serverconn.writenum(g)
 
             print('A->S: writing p...')
-            serverutil.writenum(p)
+            serverconn.writenum(p)
 
             print('S->A: reading B...')
-            B = serverutil.readnum()
+            B = serverconn.readnum()
 
             print('A->C: writing p...')
-            clientutil.writenum(p)
+            clientconn.writenum(p)
 
             print('C->A: reading encrypted message...')
-            encryptedMessage = clientutil.readbytes()
+            encrypted_message = clientconn.readbytes()
 
             print('A->S: writing encrypted message...')
-            serverutil.writebytes(encryptedMessage)
+            serverconn.writebytes(encrypted_message)
 
             print('C->A: reading iv...')
-            iv = clientutil.readbytes()
+            iv = clientconn.readbytes()
 
             print('A->S: writing iv...')
-            serverutil.writebytes(iv)
+            serverconn.writebytes(iv)
 
             print('S->A: reading encrypted message...')
-            encryptedMessage2 = serverutil.readbytes()
+            encrypted_message2 = serverconn.readbytes()
 
             print('A->C: writing encrypted message...')
-            clientutil.writebytes(encryptedMessage2)
+            clientconn.writebytes(encrypted_message2)
 
             print('S->A: reading iv...')
-            iv2 = serverutil.readbytes()
+            iv2 = serverconn.readbytes()
 
             print('A->C: writing iv...')
-            clientutil.writebytes(iv2)
+            clientconn.writebytes(iv2)
 
-            key = serverutil.derivekey(0)
-            message = serverutil.decrypt(key, iv, encryptedMessage)
+            key = challenge34_shared.derivekey(0)
+            message = challenge34_shared.decrypt(key, iv, encrypted_message)
 
             print('A: message: ' + message)
 

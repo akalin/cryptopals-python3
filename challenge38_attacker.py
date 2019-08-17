@@ -1,5 +1,5 @@
 import base64
-import challenge34_util
+import challenge34_shared
 import challenge36_util
 import socketserver
 import sys
@@ -22,28 +22,28 @@ class SRPTCPHandler(socketserver.StreamRequestHandler):
         global email
         global password
 
-        util = challenge34_util.Util(self)
+        conn = challenge34_shared.Conn(self)
 
         print('S: reading email...')
-        readEmail = util.readline()
+        readEmail = conn.readline()
 
         print('S: reading A...')
-        A = util.readnum()
+        A = conn.readnum()
 
         print('S: writing salt...')
-        util.writenum(salt)
+        conn.writenum(salt)
 
         print('S: writing B...')
-        util.writenum(B)
+        conn.writenum(B)
 
         print('S: writing u...')
-        util.writenum(u)
+        conn.writenum(u)
 
         print('S: reading hmac...')
-        client_hmac = util.readbytes()
+        client_hmac = conn.readbytes()
 
         print('S: writing success...')
-        util.writeline(b'OK')
+        conn.writeline(b'OK')
 
         print('A:', A)
         print('client_hmac:', base64.b64encode(client_hmac))

@@ -2,7 +2,7 @@ from Crypto.Random import random
 import socket
 import sys
 import util
-import challenge34_util
+import challenge34_shared
 
 host = sys.argv[1]
 port = int(sys.argv[2])
@@ -16,35 +16,35 @@ A = pow(g, a, p)
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
     sock.connect((host, port))
-    util = challenge34_util.Util(sock)
+    conn = challenge34_shared.Conn(sock)
 
     print('C: writing p...')
-    util.writenum(p)
+    conn.writenum(p)
 
     print('C: writing g...')
-    util.writenum(g)
+    conn.writenum(g)
 
     print('C: writing A...')
-    util.writenum(A)
+    conn.writenum(A)
 
     print('C: reading B...')
-    B = util.readnum()
+    B = conn.readnum()
 
     s = pow(B, a, p)
-    key = util.derivekey(s)
+    key = challenge34_shared.derivekey(s)
 
     iv = util.randbytes(16)
-    encryptedMessage = util.encrypt(key, iv, message)
+    encrypted_message = challenge34_shared.encrypt(key, iv, message)
 
     print('C: writing encrypted message...')
-    util.writebytes(encryptedMessage)
+    conn.writebytes(encrypted_message)
 
     print('C: writing iv...')
-    util.writebytes(iv)
+    conn.writebytes(iv)
 
     print('C: reading encrypted message...')
-    encryptedMessage2 = util.readbytes()
-    message2 = util.decrypt(key, iv, encryptedMessage2)
+    encrypted_message2 = conn.readbytes()
+    message2 = challenge34_shared.decrypt(key, iv, encrypted_message2)
     if message2 != message:
         raise Exception(message2 + ' != ' + message)
 finally:

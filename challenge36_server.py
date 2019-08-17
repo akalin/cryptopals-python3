@@ -1,5 +1,5 @@
 from Crypto.Random import random
-import challenge34_util
+import challenge34_shared
 import challenge36_util
 import socketserver
 import sys
@@ -18,22 +18,22 @@ class SRPTCPHandler(socketserver.StreamRequestHandler):
         global email
         global password
 
-        util = challenge34_util.Util(self)
+        conn = challenge34_shared.Conn(self)
 
         print('S: reading email...')
-        readEmail = util.readline()
+        readEmail = conn.readline()
 
         print('S: reading A...')
-        A = util.readnum()
+        A = conn.readnum()
 
         print('S: writing salt...')
-        util.writenum(salt)
+        conn.writenum(salt)
 
         b = random.randint(0, N)
         B = (pow(g, b, N) + k*v) % N
 
         print('S: writing B...')
-        util.writenum(B)
+        conn.writenum(B)
 
         u = challenge36_util.hashToInt(str(A) + str(B))
 
@@ -42,13 +42,13 @@ class SRPTCPHandler(socketserver.StreamRequestHandler):
         server_hmac = challenge36_util.hmac(salt, K)
 
         print('S: reading hmac...')
-        client_hmac = util.readbytes()
+        client_hmac = conn.readbytes()
 
         if client_hmac == server_hmac:
             print('S: writing success...')
-            util.writeline(b'OK')
+            conn.writeline(b'OK')
         else:
-            util.writeline(b'NOT OK')
+            conn.writeline(b'NOT OK')
 
 if __name__ == "__main__":
     host = sys.argv[1]

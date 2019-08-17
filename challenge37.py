@@ -2,7 +2,7 @@ from Crypto.Random import random
 import hmac
 import socket
 import sys
-import challenge34_util
+import challenge34_shared
 import challenge36_util
 
 host = sys.argv[1]
@@ -18,20 +18,20 @@ k = 3
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
     sock.connect((host, port))
-    util = challenge34_util.Util(sock)
+    conn = challenge34_shared.Conn(sock)
 
     print('C: writing email...')
-    util.writeline(email.encode('ascii'))
+    conn.writeline(email.encode('ascii'))
 
     A = m*N
     print('C: writing A...')
-    util.writenum(A)
+    conn.writenum(A)
 
     print('C: reading salt...')
-    salt = util.readnum()
+    salt = conn.readnum()
 
     print('C: reading B...')
-    B = util.readnum()
+    B = conn.readnum()
 
     S = 0
     K = challenge36_util.hashToBytes(str(S))
@@ -39,10 +39,10 @@ try:
     client_hmac = challenge36_util.hmac(salt, K)
 
     print('C: writing hmac...')
-    util.writebytes(client_hmac)
+    conn.writebytes(client_hmac)
 
     print('C: reading result...')
-    result = util.readline()
+    result = conn.readline()
 
     print('result:', result)
 finally:

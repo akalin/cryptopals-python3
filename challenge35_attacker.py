@@ -1,4 +1,4 @@
-import challenge34_util
+import challenge34_shared
 import socket
 import socketserver
 import sys
@@ -16,17 +16,17 @@ class AttackerTCPHandler(socketserver.StreamRequestHandler):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             sock.connect((targethost, targetport))
-            serverutil = challenge34_util.Util(sock)
-            clientutil = challenge34_util.Util(self)
+            serverconn = challenge34_shared.Conn(sock)
+            clientconn = challenge34_shared.Conn(self)
 
             print('C->A: reading p...')
-            p = clientutil.readnum()
+            p = clientconn.readnum()
 
             print('C->A: reading g...')
-            g = clientutil.readnum()
+            g = clientconn.readnum()
 
             print('A->S: writing p...')
-            serverutil.writenum(p)
+            serverconn.writenum(p)
 
             if targetg > 0:
                 fakeg = 1
@@ -36,55 +36,55 @@ class AttackerTCPHandler(socketserver.StreamRequestHandler):
                 fakeg = p
 
             print('A->S: writing fake g...')
-            serverutil.writenum(fakeg)
+            serverconn.writenum(fakeg)
 
             print('S->A: reading p...')
-            serverutil.readnum()
+            serverconn.readnum()
 
             print('S->A: reading g...')
-            serverutil.readnum()
+            serverconn.readnum()
 
             print('A->C: writing p...')
-            clientutil.writenum(p)
+            clientconn.writenum(p)
 
             print('A->C: writing fake g...')
-            clientutil.writenum(fakeg)
+            clientconn.writenum(fakeg)
 
             print('C->A: reading A...')
-            A = clientutil.readnum()
+            A = clientconn.readnum()
 
             print('A->S: writing A...')
-            serverutil.writenum(A)
+            serverconn.writenum(A)
 
             print('S->A: reading B...')
-            B = serverutil.readnum()
+            B = serverconn.readnum()
 
             print('A->C: writing B...')
-            clientutil.writenum(B)
+            clientconn.writenum(B)
 
             print('C->A: reading encrypted message...')
-            encryptedMessage = clientutil.readbytes()
+            encrypted_message = clientconn.readbytes()
 
             print('A->S: writing encrypted message...')
-            serverutil.writebytes(encryptedMessage)
+            serverconn.writebytes(encrypted_message)
 
             print('C->A: reading iv...')
-            iv = clientutil.readbytes()
+            iv = clientconn.readbytes()
 
             print('A->S: writing iv...')
-            serverutil.writebytes(iv)
+            serverconn.writebytes(iv)
 
             print('S->A: reading encrypted message...')
-            encryptedMessage2 = serverutil.readbytes()
+            encrypted_message2 = serverconn.readbytes()
 
             print('A->C: writing encrypted message...')
-            clientutil.writebytes(encryptedMessage2)
+            clientconn.writebytes(encrypted_message2)
 
             print('S->A: reading iv...')
-            iv2 = serverutil.readbytes()
+            iv2 = serverconn.readbytes()
 
             print('A->C: writing iv...')
-            clientutil.writebytes(iv2)
+            clientconn.writebytes(iv2)
 
             if targetg > 0:
                 s = 1
@@ -95,8 +95,8 @@ class AttackerTCPHandler(socketserver.StreamRequestHandler):
                     s = 1
             else:
                 s = 0
-            key = serverutil.derivekey(s)
-            message = serverutil.decrypt(key, iv, encryptedMessage)
+            key = challenge34_shared.derivekey(s)
+            message = challenge34_shared.decrypt(key, iv, encrypted_message)
 
             print('A: message: ' + message)
 

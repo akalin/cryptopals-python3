@@ -6,7 +6,7 @@ import socket
 import socketserver
 import util
 
-class Util:
+class Conn:
     def __init__(self, o):
         if isinstance(o, socket.socket):
             f = o.makefile(mode='rwb', buffering=0)
@@ -36,15 +36,15 @@ class Util:
     def writebytes(self, bytes):
         self.writeline(base64.b64encode(bytes))
 
-    def derivekey(self, s):
-        sha1 = hashlib.sha1()
-        sha1.update(str(s).encode('ascii'))
-        return sha1.digest()[:16]
+def derivekey(s):
+    sha1 = hashlib.sha1()
+    sha1.update(str(s).encode('ascii'))
+    return sha1.digest()[:16]
 
-    def encrypt(self, key, iv, message):
-        cipher = AES.new(key, AES.MODE_CBC, iv)
-        return cipher.encrypt(util.padPKCS7(message.encode('ascii'), 16))
+def encrypt(key, iv, message):
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    return cipher.encrypt(util.padPKCS7(message.encode('ascii'), 16))
 
-    def decrypt(self, key, iv, encryptedMessage):
-        cipher = AES.new(key, AES.MODE_CBC, iv)
-        return challenge15.unpadPKCS7(cipher.decrypt(encryptedMessage)).decode('ascii')
+def decrypt(key, iv, encryptedMessage):
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    return challenge15.unpadPKCS7(cipher.decrypt(encryptedMessage)).decode('ascii')
