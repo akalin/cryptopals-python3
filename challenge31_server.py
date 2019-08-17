@@ -1,3 +1,4 @@
+from Crypto.Random import get_random_bytes
 from Crypto.Util.strxor import strxor_c
 from Crypto.Util.strxor import strxor
 import binascii
@@ -6,13 +7,12 @@ import http.server
 import socketserver
 import time
 import urllib.parse
-import util
 
 PORT = 9000
 DELAY = 0.05
 
 blocksize = 64
-key = util.randbytes(100)
+key = get_random_bytes(100)
 
 def sha1(x):
     return challenge28.SHA1(x).digest()

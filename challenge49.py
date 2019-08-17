@@ -1,4 +1,5 @@
 from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
 from Crypto.Util.strxor import strxor
 
 import re
@@ -9,7 +10,7 @@ def CBC_MAC(key, iv, p):
     c = cipher.encrypt(util.padPKCS7(p, 16))
     return c[-16:]
 
-key = util.randbytes(16)
+key = get_random_bytes(16)
 
 def backend_process_message(m):
     global key
@@ -45,7 +46,7 @@ def frontend_send_message(sender, recipient, amount):
         raise Exception(b'Invalid recipient ' + recipient)
     amount = int(amount)
     message = b'from=' + sender + b'&to=' + recipient + b'&amount=' + str(amount).encode('ascii')
-    iv = util.randbytes(16)
+    iv = get_random_bytes(16)
     last_sent_message = message + iv + CBC_MAC(key, iv, message)
     print('C:', last_sent_message)
     backend_process_message(last_sent_message)
@@ -69,7 +70,7 @@ def attacker_send_forged_message(sender, recipient, amount):
     forged_iv = strxor(iv, strxor(message[:16], forged_message[:16]))
     attacker_inject_message(forged_message + forged_iv + mac)
 
-key2 = util.randbytes(16)
+key2 = get_random_bytes(16)
 iv2 = b'\x00' * 16
 
 def backend2_process_message(m):

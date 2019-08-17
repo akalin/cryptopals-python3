@@ -1,4 +1,5 @@
 from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
 from Crypto.Util import Counter
 import base64
 import string
@@ -17,7 +18,7 @@ Content-Length: {1}
 def oracle_ctr(P):
     request = format_request(P)
     compressed_request = zlib.compress(request.encode('ascii'))
-    key = util.randbytes(16)
+    key = get_random_bytes(16)
     ctr = Counter.new(128)
     cipher = AES.new(key, AES.MODE_CTR, counter=ctr)
     encrypted_request = cipher.encrypt(compressed_request)
@@ -26,8 +27,8 @@ def oracle_ctr(P):
 def oracle_cbc(P):
     request = format_request(P)
     compressed_request = zlib.compress(request.encode('ascii'))
-    key = util.randbytes(16)
-    iv = util.randbytes(16)
+    key = get_random_bytes(16)
+    iv = get_random_bytes(16)
     cipher = AES.new(key, AES.MODE_CBC, iv)
     encrypted_request = cipher.encrypt(util.padPKCS7(compressed_request, 16))
     return len(encrypted_request)

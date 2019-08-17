@@ -1,5 +1,5 @@
 import challenge52
-import util
+from Crypto.Random import get_random_bytes
 
 def findStatePrefixCollision(hashFn, iv1, iv2, blockLength):
     hashToIV2Block = {}
@@ -80,7 +80,7 @@ def findSecondPreimage(m, hashFn, iv, blockLength, hashLength):
     return m2
 
 if __name__ == '__main__':
-    m = util.randbytes(100)
+    m = get_random_bytes(100)
     h = challenge52.badHash(m, b'')
     m2 = findSecondPreimage(m, challenge52.badHash, b'', challenge52.badHashBlockLength, challenge52.badHashHashLength)
     h2 = challenge52.badHash(m2, b'')

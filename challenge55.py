@@ -1,9 +1,9 @@
 import binascii
 import md4
 import struct
-import util
 from util import lrot32, rrot32
 import time
+from Crypto.Random import get_random_bytes
 
 def md4_hexdigest(m, msglen=None):
     md4obj = md4.md4()
@@ -402,7 +402,7 @@ def invert_round1(s0, states):
     return X
 
 def randX():
-        b = util.randbytes(64)
+        b = get_random_bytes(64)
         X = list(struct.unpack('>16I', b))
         return X
 
