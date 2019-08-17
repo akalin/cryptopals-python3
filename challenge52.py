@@ -17,7 +17,7 @@ def MerkleDamgard(f, processIV, blockLength, padMessage):
 badHashHashLength = 2
 
 def badHashF(messageBlock, state):
-    cipher = Blowfish.new(state, Blowfish.MODE_ECB)
+    cipher = Blowfish.new(b'00' + state, Blowfish.MODE_ECB)
     newState = cipher.encrypt(messageBlock)[:badHashHashLength]
     return newState
 
@@ -67,7 +67,7 @@ def generateCollisions(hashFn, iv, blockLength, hashLength, n):
 lessBadHashHashLength = 3
 
 def lessBadHashF(messageBlock, state):
-    cipher = Blowfish.new(state, Blowfish.MODE_ECB)
+    cipher = Blowfish.new(b'00' + state, Blowfish.MODE_ECB)
     newState = cipher.encrypt(messageBlock)[:lessBadHashHashLength]
     return newState
 
