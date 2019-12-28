@@ -2,14 +2,8 @@ import binascii
 import md4
 import struct
 import time
+from util import rrot32
 from Crypto.Random import get_random_bytes
-
-def rrot32(x, n):
-    x = x & 0xffffffff
-    return (x >> n) | ((x << (32 - n)) & 0xffffffff)
-
-def lrot32(x, n):
-    return rrot32(x, 32 - n)
 
 def md4_hexdigest(m, msglen=None):
     md4obj = md4.md4()
