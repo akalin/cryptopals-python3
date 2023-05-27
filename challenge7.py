@@ -1,5 +1,5 @@
 import base64
-from Crypto.Cipher import AES
+from Cryptodome.Cipher import AES
 
 x = base64.b64decode(open('7.txt', 'r').read())
 

@@ -1,5 +1,5 @@
-from Crypto.Random import get_random_bytes
-from Crypto.Random.random import randint
+from Cryptodome.Random import get_random_bytes
+from Cryptodome.Random.random import randint
 import socket
 import sys
 import challenge34_shared

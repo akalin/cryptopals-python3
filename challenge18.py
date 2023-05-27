@@ -1,7 +1,7 @@
 import base64
 import struct
-from Crypto.Cipher import AES
-from Crypto.Util.strxor import strxor
+from Cryptodome.Cipher import AES
+from Cryptodome.Util.strxor import strxor
 
 class CTR:
     def __init__(self, ECB, nonce):

@@ -1,6 +1,8 @@
 This are my solutions to the Matasano crypto challenges
 (http://cryptopals.com) in Python 3.
 
+A lot of solutions depend on pycryptodomex (https://pypi.org/project/pycryptodomex/).
+
 For most challenges it suffices to run:
 
 python3 challengeXX.py

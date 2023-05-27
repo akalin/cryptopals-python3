@@ -1,4 +1,4 @@
-from Crypto.Random import random
+from Cryptodome.Random import random
 
 # The challenge doesn't talk about the order of g, but implement it
 # anyway. Also it introduces a slight bias by saying to generate a

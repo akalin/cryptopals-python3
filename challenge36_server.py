@@ -1,4 +1,4 @@
-from Crypto.Random import random
+from Cryptodome.Random import random
 import challenge34_shared
 import challenge36_util
 import socketserver

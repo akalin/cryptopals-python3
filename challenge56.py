@@ -1,8 +1,8 @@
 import base64
 import binascii
 
-from Crypto.Cipher import ARC4
-from Crypto.Random import get_random_bytes
+from Cryptodome.Cipher import ARC4
+from Cryptodome.Random import get_random_bytes
 
 encoded_cookie = b'QkUgU1VSRSBUTyBEUklOSyBZT1VSIE9WQUxUSU5F'
 cookie = base64.b64decode(encoded_cookie)

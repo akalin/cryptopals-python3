@@ -1,5 +1,5 @@
 import binascii
-from Crypto.Util.strxor import strxor_c
+from Cryptodome.Util.strxor import strxor_c
 
 # From http://www.data-compression.com/english.html
 freqs = {

@@ -1,5 +1,5 @@
-from Crypto.Cipher import AES
-from Crypto.Util.strxor import strxor
+from Cryptodome.Cipher import AES
+from Cryptodome.Util.strxor import strxor
 import base64
 import binascii
 import challenge18

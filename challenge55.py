@@ -3,7 +3,7 @@ import md4
 import struct
 import time
 from util import rrot32
-from Crypto.Random import get_random_bytes
+from Cryptodome.Random import get_random_bytes
 
 def md4_hexdigest(m, msglen=None):
     md4obj = md4.md4()

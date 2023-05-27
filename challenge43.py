@@ -1,4 +1,4 @@
-from Crypto.Random import random
+from Cryptodome.Random import random
 import binascii
 import challenge39
 import hashlib

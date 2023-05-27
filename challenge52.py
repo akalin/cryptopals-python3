@@ -1,4 +1,4 @@
-from Crypto.Cipher import Blowfish
+from Cryptodome.Cipher import Blowfish
 import struct
 import util
 

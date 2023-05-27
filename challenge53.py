@@ -1,5 +1,5 @@
 import challenge52
-from Crypto.Random import get_random_bytes
+from Cryptodome.Random import get_random_bytes
 
 def findStatePrefixCollision(hashFn, iv1, iv2, blockLength):
     hashToIV2Block = {}

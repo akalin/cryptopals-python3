@@ -1,6 +1,6 @@
-from Crypto.Random import get_random_bytes
-from Crypto.Util.strxor import strxor_c
-from Crypto.Util.strxor import strxor
+from Cryptodome.Random import get_random_bytes
+from Cryptodome.Util.strxor import strxor_c
+from Cryptodome.Util.strxor import strxor
 import binascii
 import challenge28
 import http.server

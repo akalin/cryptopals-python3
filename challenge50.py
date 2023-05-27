@@ -1,4 +1,4 @@
-from Crypto.Util.strxor import strxor
+from Cryptodome.Util.strxor import strxor
 import binascii
 import challenge49
 import itertools

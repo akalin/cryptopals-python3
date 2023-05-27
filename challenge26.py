@@ -1,6 +1,6 @@
-from Crypto.Cipher import AES
-from Crypto.Random import get_random_bytes
-from Crypto.Random.random import getrandbits
+from Cryptodome.Cipher import AES
+from Cryptodome.Random import get_random_bytes
+from Cryptodome.Random.random import getrandbits
 import challenge15
 import challenge18
 import util

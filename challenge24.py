@@ -1,6 +1,6 @@
-from Crypto.Util.strxor import strxor
-from Crypto.Random import get_random_bytes
-from Crypto.Random.random import getrandbits, randint
+from Cryptodome.Util.strxor import strxor
+from Cryptodome.Random import get_random_bytes
+from Cryptodome.Random.random import getrandbits, randint
 import challenge21
 import struct
 import time

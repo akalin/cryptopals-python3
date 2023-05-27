@@ -1,4 +1,4 @@
-from Crypto.Util.strxor import strxor
+from Cryptodome.Util.strxor import strxor
 import base64
 import challenge3
 import challenge19

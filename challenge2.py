@@ -1,5 +1,5 @@
 import binascii
-from Crypto.Util.strxor import strxor
+from Cryptodome.Util.strxor import strxor
 
 encodedS = '1c0111001f010100061a024b53535009181c'
 encodedT = '686974207468652062756c6c277320657965'
